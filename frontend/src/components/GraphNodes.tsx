@@ -26,23 +26,27 @@ export const PlantNode = ({ data, selected }: any) => {
 
 export const SupplierNode = ({ data, selected }: any) => {
   const isHotspot = data.isHotspot;
+  const isWarning = data.score < 50 && !isHotspot;
   const isTaxed = data.isTaxed;
   const isSubsidized = data.isSubsidized;
   const isRecycled = data.recycled;
 
   let highlightClass = '';
   if (selected) highlightClass = 'ring-2 ring-[#974726]/40 border-[#974726]';
-  else if (isHotspot) highlightClass = 'border-[#b91c1c] shadow-[0_4px_12px_rgba(185,28,28,0.1)]';
+  else if (isHotspot) highlightClass = 'bg-[#fff5f5] ring-2 ring-[#b91c1c] border-[#b91c1c] shadow-[0_8px_16px_rgba(185,28,28,0.25)] scale-105 z-10';
+  else if (isWarning) highlightClass = 'bg-[#fffbf0] ring-1 ring-[#f59e0b] border-[#f59e0b] shadow-[0_4px_12px_rgba(245,158,11,0.15)] scale-[1.02] z-10';
   else if (isTaxed) highlightClass = 'border-[#974726]';
   else if (isSubsidized) highlightClass = 'border-[#15803d]';
 
   const iconColor = isHotspot 
     ? 'text-[#b91c1c]' 
-    : isTaxed 
-      ? 'text-[#974726]' 
-      : isSubsidized 
-        ? 'text-[#15803d]' 
-        : 'text-[#877369]';
+    : isWarning
+      ? 'text-[#d97706]'
+      : isTaxed 
+        ? 'text-[#974726]' 
+        : isSubsidized 
+          ? 'text-[#15803d]' 
+          : 'text-[#877369]';
 
   const tierBg = data.tier_level === 1 
     ? 'bg-[#ffdea0] text-[#261900]' 
@@ -60,8 +64,9 @@ export const SupplierNode = ({ data, selected }: any) => {
           <div className="text-[9px] text-[#877369] font-medium truncate">{data.location}</div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          {isHotspot && <AlertTriangle size={10} className="text-[#b91c1c]" />}
-          {!isHotspot && isRecycled && <Leaf size={10} className="text-[#15803d]" />}
+          {isHotspot && <AlertTriangle size={10} className="text-[#b91c1c] animate-pulse" />}
+          {isWarning && <AlertTriangle size={10} className="text-[#d97706]" />}
+          {!isHotspot && !isWarning && isRecycled && <Leaf size={10} className="text-[#15803d]" />}
           <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${tierBg}`}>T{data.tier_level}</span>
         </div>
       </div>

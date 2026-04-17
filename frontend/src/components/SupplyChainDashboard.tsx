@@ -4,6 +4,7 @@ import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import dagre from 'dagre';
 import { GoogleGenAI, Type } from '@google/genai';
+import { jsPDF } from 'jspdf';
 
 import supplyData from '../mock_data/supply.json';
 import alternativesData from '../mock_data/alternatives.json';
@@ -14,7 +15,7 @@ import { AICommandBar } from './AICommandBar';
 import type { AICommandResult, AIRecommendation } from './AICommandBar';
 import { TimelineView, type Snapshot } from './TimelineView';
 import { AIInsightPanel, type ImpactSummary } from './AIInsightPanel';
-import { CircularEconomyPanel } from './CircularEconomyPanel';
+import { CircularEconomyPanel, type CircularOpportunity } from './CircularEconomyPanel';
 
 const PROACTIVE_SUGGESTION_CACHE = new Map<string, AIRecommendation[]>();
 
@@ -100,6 +101,10 @@ export default function SupplyChainDashboard() {
   // Timeline States
   const [timeline, setTimeline] = useState<Snapshot[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
+
+  // Circular Economy States
+  const [isCircularPanelOpen, setIsCircularPanelOpen] = useState(false);
+  const [showExecutiveReport, setShowExecutiveReport] = useState(false);
 
   const fetchSuggestions = async () => {
     if (isSuggesting || nodes.length === 0) return;
@@ -373,9 +378,7 @@ export default function SupplyChainDashboard() {
 
         nodeAccumulations[edge.target] = (nodeAccumulations[edge.target] || 0) + edgeEmission;
 
-        if (edgeEmission > 5000) {
-          nodeHotspotChecks[edge.source] = true;
-        }
+        nodeAccumulations[edge.target] = (nodeAccumulations[edge.target] || 0) + edgeEmission;
 
         // --- Dynamic Tax & Policy Logic per Edge ---
         let edgeTaxMultiplier = 1.0;
@@ -389,12 +392,55 @@ export default function SupplyChainDashboard() {
       }
     });
 
+    // --- Contagion / Hotspot Propagation Logic ---
+    // 1. Initial independent hotspots
+    newNodes.forEach(node => {
+      if (node.type === 'supplier') {
+         if (node.data.score < 30) {
+            nodeHotspotChecks[node.id] = true;
+         }
+      }
+    });
+    edges.forEach(edge => {
+      const logistics = edge.data?.logistics;
+      const sourceNode = newNodes.find(n => n.id === edge.source);
+      if (logistics && sourceNode) {
+        const edgeEmission = (logistics.weight_ton * sourceNode.data.materialIndex) + 
+                             (logistics.weight_ton * logistics.distance_km * logistics.emission_factor);
+        if (edgeEmission > 5000) {
+          nodeHotspotChecks[edge.source] = true;
+        }
+      }
+    });
+
+    // 2. Multi-pass downstream propagation (Contagion: toxic origin poisons downstream processors)
+    let changed = true;
+    let passes = 0;
+    while (changed && passes < 4) {
+      changed = false;
+      passes++;
+      edges.forEach(edge => {
+         if (nodeHotspotChecks[edge.source] && !nodeHotspotChecks[edge.target]) {
+            const targetNode = newNodes.find(n => n.id === edge.target);
+            // Only infect suppliers, not assembly plants.
+            if (targetNode && targetNode.type === 'supplier') {
+              // Assume it poisons if weight transported is significant
+              const weight = edge.data?.logistics?.weight_ton || 0;
+              if (weight > 50) {
+                 nodeHotspotChecks[edge.target] = true;
+                 changed = true;
+              }
+            }
+         }
+      });
+    }
+
     newNodes.forEach(node => {
       if (node.type === 'plant') {
         node.data.accumulatedEmissions = nodeAccumulations[node.id] || 0;
       }
       if (node.type === 'supplier') {
-        const isHotspot = nodeHotspotChecks[node.id] || node.data.score < 30;
+        const isHotspot = nodeHotspotChecks[node.id] || false;
         node.data.isHotspot = isHotspot;
 
         const countryCode = node.data.country_code || 'NA';
@@ -523,6 +569,141 @@ export default function SupplyChainDashboard() {
     setSelectedNode(null);
   };
 
+  const handleCircularAdopt = (opp: CircularOpportunity) => {
+    const beforeLiability = computeLiability(edges, nodes, countryMultipliers, carbonTaxRate);
+    
+    // 2. Add new Edge representing the circular flow
+    const newEdge: Edge = {
+      id: `circular-${opp.sourceId}-${opp.targetId}-${Date.now()}`,
+      source: opp.sourceId,
+      target: opp.targetId,
+      animated: true,
+      style: { stroke: '#10b981', strokeWidth: 3, strokeDasharray: '4,4' },
+      data: {
+        logistics: {
+          mode: 'Circular Swap',
+          distance_km: 0, 
+          weight_ton: 0,
+          emission_factor: 0,
+          cost: 0 
+        }
+      }
+    };
+    
+    const newEdges = [...edges, newEdge];
+    const afterLiability = computeLiability(newEdges, nodes, countryMultipliers, carbonTaxRate);
+    
+    // Custom simulated liability impact to reflect savings natively
+    const simulatedDelta = -opp.netSaving;
+
+    const actionText = opp.type === 'inventory_balance' ? 'Inventory Balanced' : 'Waste Loop Formed';
+
+    const bullets = [
+      `${actionText}: ${opp.sourceLabel} → ${opp.targetLabel}`,
+      `Item: ${opp.itemLabel}`,
+      `Fresh Proc. / Disposal Avoided: ₹${opp.freshProcurementCost.toLocaleString()}`,
+      `Transport Cost: ₹${opp.transportCostEstimate.toLocaleString()}`,
+      `Net Savings: ₹${opp.netSaving.toLocaleString()}`,
+      `CO2 Reduced: ${opp.emissionReductionKg} kg`
+    ];
+
+    setImpactSummary({
+      bullets,
+      delta: simulatedDelta,
+      before: beforeLiability,
+      after: beforeLiability + simulatedDelta
+    });
+    
+    setChangeSummary(`Implemented Circular Flow: ${opp.itemLabel} (${opp.sourceLabel} → ${opp.targetLabel})`);
+
+    const layouted = getLayoutedElements(nodes, newEdges);
+    pushToTimeline(`Adopted ${actionText}: ${opp.itemLabel}`, layouted.nodes, layouted.edges, countryMultipliers, {
+      impactSummary: { bullets, delta: simulatedDelta, before: beforeLiability, after: beforeLiability + simulatedDelta },
+      changeSummary: `Implemented Circular Flow: ${opp.itemLabel} (${opp.sourceLabel} → ${opp.targetLabel})`
+    });
+
+    setNodes(layouted.nodes);
+    setEdges(layouted.edges);
+  };
+
+
+  const handleDownloadReport = () => {
+    const baseL = timeline[0] ? computeLiability(timeline[0].edges, timeline[0].nodes, timeline[0].countryMultipliers, carbonTaxRate) : 0;
+    const curL = timeline[currentIndex] ? computeLiability(timeline[currentIndex].edges, timeline[currentIndex].nodes, timeline[currentIndex].countryMultipliers, carbonTaxRate) : 0;
+    const delta = curL - baseL;
+
+    const doc = new jsPDF();
+    
+    // Header
+    doc.setFontSize(22);
+    doc.setTextColor(85, 58, 52);
+    doc.text("EXECUTIVE AUDIT BRIEFING", 20, 30);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(135, 115, 105);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 40);
+    
+    doc.setDrawColor(218, 194, 182);
+    doc.line(20, 45, 190, 45);
+
+    // Summary block
+    doc.setFontSize(12);
+    doc.setTextColor(85, 58, 52);
+    doc.text("Session Abstract", 20, 60);
+
+    doc.setFontSize(14);
+    const sign = delta <= 0 ? '-' : '+';
+    doc.setTextColor(delta <= 0 ? 21 : 185, delta <= 0 ? 128 : 28, delta <= 0 ? 61 : 28);
+    doc.text(`Net Policy Liability Impact: ${sign} INR ${Math.abs(delta).toLocaleString()}`, 20, 70);
+    
+    doc.setTextColor(85, 58, 52);
+    doc.text(`Total Interventions: ${timeline.slice(1, currentIndex + 1).length}`, 20, 80);
+
+    doc.line(20, 90, 190, 90);
+
+    // Decision Ledger
+    doc.setFontSize(14);
+    doc.text("Chronological Decision Ledger", 20, 105);
+
+    doc.setFontSize(11);
+    let y = 120;
+    
+    const log = timeline.slice(1, currentIndex + 1);
+    if (log.length === 0) {
+      doc.text("No actions taken in this session.", 20, y);
+    } else {
+      log.forEach(snap => {
+        if (y > 270) {
+           doc.addPage();
+           y = 20;
+        }
+        
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(85, 58, 52);
+        const titleLines = doc.splitTextToSize(`[${snap.timestamp}] ${snap.description}`, 160);
+        doc.text(titleLines, 20, y);
+        y += (7 * titleLines.length);
+        
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(135, 115, 105);
+        if (snap.changeSummary) {
+          const detailLines = doc.splitTextToSize(`Detail: ${snap.changeSummary}`, 155);
+          doc.text(detailLines, 25, y);
+          y += (7 * detailLines.length);
+        }
+        
+        if (snap.impactSummary && snap.impactSummary.delta !== 0) {
+          const isNegative = snap.impactSummary.delta <= 0;
+          doc.setTextColor(isNegative ? 21 : 185, isNegative ? 128 : 28, isNegative ? 61 : 28);
+          doc.text(`Financial Delta: ${isNegative ? '-' : '+'} INR ${Math.abs(snap.impactSummary.delta).toLocaleString()}`, 25, y);
+          y += 7;
+        }
+        y += 5; // extra spacing
+      });
+    }
+
+    doc.save(`ESGAudit_Briefing_${new Date().toISOString().slice(0,10)}.pdf`);
+  };
 
   return (
     <div className="h-screen w-full bg-[#fcf9f4] flex flex-col font-sans overflow-hidden text-[#553a34] selection:bg-[#ffdea0] selection:text-[#261900]">
@@ -535,6 +716,17 @@ export default function SupplyChainDashboard() {
         </div>
 
         <div className="flex gap-6 items-center">
+          {/* Toggle for Circular Economy */}
+          <div className="flex items-center gap-2 mr-2 bg-[#10b981]/10 px-3 py-1.5 rounded-md border border-[#10b981]/20">
+            <span className="text-[9px] text-[#10b981] font-bold uppercase tracking-wider">Circular Interlinks</span>
+            <button
+              onClick={() => setIsCircularPanelOpen(!isCircularPanelOpen)}
+              className={`w-8 h-4 rounded-full transition-colors relative flex items-center p-0.5 ${isCircularPanelOpen ? 'bg-[#10b981]' : 'bg-[#dac2b6]'}`}
+            >
+              <div className={`w-3 h-3 bg-white rounded-full transition-all ${isCircularPanelOpen ? 'translate-x-4' : 'translate-x-0'}`} />
+            </button>
+          </div>
+
           {/* Toggle for Alternatives */}
           <div className="flex items-center gap-2 mr-2 bg-[#ebe8e3] px-3 py-1.5 rounded-md border border-[#dac2b6] border-opacity-30">
             <span className="text-[9px] text-[#877369] font-bold uppercase tracking-wider">Show Alternatives</span>
@@ -545,6 +737,13 @@ export default function SupplyChainDashboard() {
               <div className={`w-3 h-3 bg-white rounded-full transition-all ${showAlternatives ? 'translate-x-4' : 'translate-x-0'}`} />
             </button>
           </div>
+
+          <button
+            onClick={() => setShowExecutiveReport(true)}
+            className="flex items-center gap-2 mr-6 bg-[#553a34] hover:bg-[#3a2824] transition-colors text-white px-4 py-1.5 rounded-md text-[9px] font-bold uppercase tracking-widest shadow-sm"
+          >
+            Audit Briefing
+          </button>
 
           {/* Change Summary Box - Editorial Style */}
           {changeSummary && (
@@ -578,7 +777,13 @@ export default function SupplyChainDashboard() {
           onSuggestionClick={setAutoRunCommand}
         />
 
-        <CircularEconomyPanel nodes={nodes} edges={edges} />
+        <CircularEconomyPanel 
+          nodes={nodes} 
+          edges={edges} 
+          isOpen={isCircularPanelOpen}
+          onClose={() => setIsCircularPanelOpen(false)}
+          onAdopt={handleCircularAdopt}
+        />
 
         <InspectorPanel
           selectedNode={selectedNode}
@@ -612,6 +817,83 @@ export default function SupplyChainDashboard() {
           autoRunPrompt={autoRunCommand}
           onAutoRunClear={() => setAutoRunCommand("")}
         />
+
+        {/* Executive Report Modal */}
+        {showExecutiveReport && (
+          <div className="absolute inset-0 bg-[#dac2b6]/30 backdrop-blur-sm z-50 flex items-center justify-center p-10 animate-in fade-in duration-300">
+            <div className="bg-[#fcf9f4] w-full max-w-3xl max-h-[85vh] rounded-md shadow-2xl border border-[#dac2b6] border-opacity-60 flex flex-col overflow-hidden">
+              <div className="px-8 py-6 border-b border-[#dac2b6] border-opacity-30 bg-white flex justify-between items-center shrink-0">
+                <div>
+                  <h2 className="text-xl font-bold text-[#553a34] uppercase tracking-widest mb-1">Executive Audit Briefing</h2>
+                  <p className="text-[11px] text-[#877369] tracking-wider uppercase font-medium">Session Abstract</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <button onClick={handleDownloadReport} className="text-[10px] font-bold tracking-widest uppercase bg-[#ebe8e3] text-[#553a34] hover:bg-[#dac2b6] transition-colors rounded-sm px-4 py-2 flex items-center gap-2">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    Download PDF
+                  </button>
+                  <button onClick={() => setShowExecutiveReport(false)} className="text-[#877369] hover:text-[#553a34] transition-colors p-2 text-lg">
+                     ✕
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-8 overflow-y-auto">
+                <div className="grid grid-cols-2 gap-4 mb-8 shrink-0">
+                  <div className="bg-white p-5 rounded-md border border-[#dac2b6] border-opacity-40 shadow-sm">
+                    <p className="text-[10px] uppercase font-bold text-[#877369] tracking-widest mb-2">Net Financial Impact</p>
+                    {(() => {
+                      const baseL = timeline[0] ? computeLiability(timeline[0].edges, timeline[0].nodes, timeline[0].countryMultipliers, carbonTaxRate) : 0;
+                      const curL = timeline[currentIndex] ? computeLiability(timeline[currentIndex].edges, timeline[currentIndex].nodes, timeline[currentIndex].countryMultipliers, carbonTaxRate) : 0;
+                      const delta = curL - baseL;
+                      return (
+                        <p className={`text-4xl font-bold newsreader tracking-tight ${delta <= 0 ? 'text-[#15803d]' : 'text-[#b91c1c]'}`}>
+                          {delta <= 0 ? '-' : '+'}₹{Math.abs(delta).toLocaleString()}
+                        </p>
+                      );
+                    })()}
+                    <p className="text-[9px] text-[#877369] font-bold mt-1.5 uppercase tracking-wider">Total Policy Liability Delta</p>
+                  </div>
+                  <div className="bg-white p-5 rounded-md border border-[#dac2b6] border-opacity-40 shadow-sm">
+                    <p className="text-[10px] uppercase font-bold text-[#877369] tracking-widest mb-2">Total Interventions</p>
+                    <p className="text-4xl font-bold newsreader text-[#553a34] tracking-tight">{timeline.slice(1, currentIndex + 1).length}</p>
+                    <p className="text-[9px] text-[#877369] font-bold mt-1.5 uppercase tracking-wider">Authorized Actions</p>
+                  </div>
+                </div>
+
+                <h3 className="text-[11px] font-bold text-[#553a34] uppercase tracking-widest border-b border-[#dac2b6] border-opacity-30 pb-3 mb-5 shrink-0">Chronological Decision Ledger</h3>
+                {timeline.slice(1, currentIndex + 1).length === 0 ? (
+                  <p className="text-[12px] text-[#877369] italic font-medium">No actions taken in this session.</p>
+                ) : (
+                  <div className="space-y-6">
+                    {timeline.slice(1, currentIndex + 1).map((snap, i) => (
+                      <div key={i} className="flex gap-5">
+                        <div className="w-16 shrink-0 text-right">
+                          <span className="text-[10px] font-bold text-[#877369] tracking-wider">{snap.timestamp}</span>
+                        </div>
+                        <div className="w-2 h-2 rounded-full bg-[#974726] mt-1.5 shrink-0" />
+                        <div className="flex-1 pb-5 border-b border-[#dac2b6] border-opacity-20 last:border-0 last:pb-0">
+                          <p className="text-[13px] font-bold text-[#553a34] mb-1.5 leading-tight">{snap.description}</p>
+                          {snap.changeSummary && (
+                            <p className="text-[11px] text-[#877369] font-medium italic leading-relaxed">{snap.changeSummary}</p>
+                          )}
+                          {snap.impactSummary && snap.impactSummary.delta !== 0 && (
+                            <div className="mt-2 inline-flex items-center gap-1.5 bg-[#fcf9f4] px-2 py-1 rounded border border-[#dac2b6] border-opacity-30">
+                              <span className="text-[8px] tracking-widest font-bold text-[#877369] uppercase">Impact:</span>
+                              <span className={`text-[10px] font-bold tracking-wider newsreader ${snap.impactSummary.delta <= 0 ? 'text-[#15803d]' : 'text-[#b91c1c]'}`}>
+                                {snap.impactSummary.delta <= 0 ? '-' : '+'}₹{Math.abs(snap.impactSummary.delta).toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
       </div>
     </div>

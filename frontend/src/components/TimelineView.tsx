@@ -23,7 +23,6 @@ export const TimelineView: React.FC<TimelineViewProps> = ({ timeline, currentInd
   return (
     <div className="absolute top-24 left-10 w-64 max-h-[70vh] overflow-y-auto bg-white border border-[#dac2b6] border-opacity-40 rounded-md shadow-2xl z-20 text-[#553a34] font-sans p-6">
       <div className="flex items-center gap-3 mb-6 border-b border-[#dac2b6] border-opacity-30 pb-4">
-         <History size={16} className="text-[#974726]" />
          <h3 className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#877369]">Archival Log</h3>
       </div>
       

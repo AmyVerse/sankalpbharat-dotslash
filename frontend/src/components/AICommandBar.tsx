@@ -102,11 +102,17 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({
       };
 
       const activeSuppliers = contextNodes.filter(n => n.type === 'supplier').map(n => `{id: "${n.id}", label: "${n.data.label}"}`).join(', ');
+      const condensedAlts = Object.entries(contextAlternatives).map(([target, alts]: any) =>
+        `Alternatives for ${target} -> [${alts.map((a: any) => `{id: "${a.id}", label: "${a.data.label}"}`).join(', ')}]`
+      ).join('; ');
 
       const systemInstruction = `You are the AI Co-Pilot for a Supply Chain Visualization Dashboard. 
-      The user will give you a natural language command (e.g., "Add a heavy 50% tariff to Chinese imports" or "Tax the US to 2.5x"). 
-      Extract the country_code (e.g. EU, CN, US, CL, TW, BR, AU, CA) and the multiplier (from 0.5 to 2.5, where 1.0 is neutral, >1.0 is tax, <1.0 is subsidy).
-      You must also recommend 1-2 actions based on their decision. For example, if they tax China heavily, recommend swapping Chinese suppliers for Taiwanese or US suppliers.
+      The user will give you a natural language command (e.g., "Add a heavy 50% tariff to Chinese imports" or "Swap Gaya Pits for MP"). 
+      Extract the country_code and the multiplier (from 0.5 to 2.5, where 1.0 is neutral, >1.0 is tax, <1.0 is subsidy) if applicable.
+      If the user is asking to swap a supplier, find the correct IDs from the provided context and populate 'node_swap'.
+      Active Suppliers Context: ${activeSuppliers}
+      Available Alternatives Context: ${condensedAlts}
+      You must also recommend 1-2 actions based on their decision.
       Write a short, professional response in 'ai_response' confirming what you did. Use authoritative, high-trust language.`;
 
       const response = await ai.models.generateContent({
@@ -155,7 +161,6 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({
       {/* Brief AI Confirmation Toast - Archive Feel */}
       {aiText && (
         <div className="px-6 py-4 border-b border-[#dac2b6] border-opacity-30 bg-[#fcf9f4] flex items-center gap-3">
-          <Sparkles size={14} className="text-[#974726] shrink-0" />
           <p className="text-[11px] text-[#553a34] font-medium leading-normal italic">{aiText}</p>
         </div>
       )}
@@ -163,7 +168,6 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({
       {/* Input Bar - Technical Notebook Style */}
       <form onSubmit={handleSubmit} className="flex relative items-center p-3">
         <div className="absolute left-8">
-          <Sparkles size={18} className="text-[#974726]" />
         </div>
         <input
           type="text"

@@ -29,7 +29,37 @@ project-root/
 │   ├── python-api/
 │   └── whatsapp-api/
 │
-|           
+│           
 ├── .gitignore         # docs
 └── README.md         
 ```
+
+## Carbon Tax Recommendations
+
+### Upcoming Regulatory Frameworks
+
+#### 1. EU Carbon Border Adjustment Mechanism (CBAM)
+- **Effective:** Full implementation by 2026
+- **Impact:** Imports of carbon-intensive goods (steel, aluminum, cement, fertilizers, hydrogen, electricity) into the EU face carbon tariffs based on embedded emissions
+- **Our Approach:** Track supply chain emissions via `SupplyLink` to calculate inherited carbon and pre-compute CBAM exposure per material
+
+#### 2. India Carbon Tax (PLI & ESG Mandates)
+- **Status:** India is developing its own carbon pricing framework with production-linked incentive (PLI) schemes favoring low-carbon manufacturers
+- **Expected:** Carbon tax on fossil fuel emissions, ESG disclosure mandates for listed companies
+- **Our Approach:** Use `base_carbon_index` on Materials + logistics CO2e to estimate tax liability and optimize supplier selection
+
+### Implementation in Platform
+
+| Feature | Description |
+|---------|-------------|
+| **Shadow P&L** | `SupplyLink.internal_carbon_tax_impact` accumulates tax across tiers |
+| **Hotspot Visualization** | Color nodes by total upstream emissions (red = high tax exposure) |
+| **What-If Scenarios** | Compare virgin vs. recycled material paths for tax savings |
+| **Supplier Tiering** | Flag Tier-2/Tier-3 suppliers with high `base_carbon_index` |
+
+### Tax Rate References (2026 Estimates)
+
+| Region | Rate | Applied To |
+|--------|------|------------|
+| EU CBAM | €80-100 / ton CO2e | Importers of carbon-intensive goods |
+| India (proposed) | ₹50-100 / ton CO2e | Fossil fuel combustion, industrial emissions |

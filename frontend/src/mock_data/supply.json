@@ -69,6 +69,21 @@
       "id": "S12",
       "type": "supplier",
       "data": { "label": "GJ Electrolyte Chem", "location": "Surat, GJ", "country_code": "IN-GJ", "tier_level": 3, "criticality_level": "medium", "materialIndex": 2.8, "base_cost": 1500, "score": 70, "recycled": false }
+    },
+    {
+      "id": "B1",
+      "type": "supplier",
+      "data": { "label": "Munger Arc Smelters", "location": "Munger, BR", "country_code": "IN-BR", "tier_level": 2, "criticality_level": "critical", "materialIndex": 1.4, "base_cost": 2100, "score": 88, "recycled": false }
+    },
+    {
+      "id": "B2",
+      "type": "supplier",
+      "data": { "label": "Patna Refining Corp", "location": "Patna, BR", "country_code": "IN-BR", "tier_level": 3, "criticality_level": "high", "materialIndex": 1.8, "base_cost": 1500, "score": 82, "recycled": false }
+    },
+    {
+      "id": "B3",
+      "type": "supplier",
+      "data": { "label": "Gaya Bauxite Pits", "location": "Gaya, BR", "country_code": "IN-BR", "tier_level": 4, "criticality_level": "medium", "materialIndex": 7.5, "base_cost": 800, "score": 15, "recycled": false }
     }
   ],
   "edges": [
@@ -84,6 +99,9 @@
     { "id": "e-S9-S3", "source": "S9", "target": "S3", "data": { "logistics": { "mode": "Rail", "distance_km": 1800, "weight_ton": 110, "emission_factor": 0.00006, "cost": 42000 } } },
     { "id": "e-S10-S5", "source": "S10", "target": "S5", "data": { "logistics": { "mode": "Ship", "distance_km": 9200, "weight_ton": 80, "emission_factor": 0.00011, "cost": 310000 } } },
     { "id": "e-S11-S5", "source": "S11", "target": "S5", "data": { "logistics": { "mode": "Truck", "distance_km": 620, "weight_ton": 95, "emission_factor": 0.00012, "cost": 28000 } } },
-    { "id": "e-S12-S1", "source": "S12", "target": "S1", "data": { "logistics": { "mode": "Truck", "distance_km": 680, "weight_ton": 40, "emission_factor": 0.00012, "cost": 21000 } } }
+    { "id": "e-S12-S1", "source": "S12", "target": "S1", "data": { "logistics": { "mode": "Truck", "distance_km": 680, "weight_ton": 40, "emission_factor": 0.00012, "cost": 21000 } } },
+    { "id": "e-B3-B2", "source": "B3", "target": "B2", "data": { "logistics": { "mode": "Truck", "distance_km": 110, "weight_ton": 300, "emission_factor": 0.00015, "cost": 15000 } } },
+    { "id": "e-B2-B1", "source": "B2", "target": "B1", "data": { "logistics": { "mode": "Truck", "distance_km": 180, "weight_ton": 250, "emission_factor": 0.00015, "cost": 28000 } } },
+    { "id": "e-B1-S3", "source": "B1", "target": "S3", "data": { "logistics": { "mode": "Rail", "distance_km": 1650, "weight_ton": 200, "emission_factor": 0.00008, "cost": 85000 } } }
   ]
 }

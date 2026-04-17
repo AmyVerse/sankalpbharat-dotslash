@@ -243,5 +243,56 @@
       },
       "edgeData": { "logistics": { "mode": "Truck", "distance_km": 280, "weight_ton": 40, "emission_factor": 0.00012, "cost": 14000 } }
     }
+  ],
+  "B1": [
+    {
+      "id": "A-B1-1",
+      "data": {
+        "label": "Odisha Clean Smelting",
+        "location": "Bhubaneswar, OR",
+        "country_code": "IN-OR",
+        "tier_level": 2,
+        "criticality_level": "medium",
+        "materialIndex": 1.2,
+        "base_cost": 3200,
+        "score": 88,
+        "recycled": true
+      },
+      "edgeData": { "logistics": { "mode": "Rail", "distance_km": 1500, "weight_ton": 200, "emission_factor": 0.00006, "cost": 75000 } }
+    }
+  ],
+  "B2": [
+    {
+      "id": "A-B2-1",
+      "data": {
+        "label": "Jharkhand Refining (Eco)",
+        "location": "Ranchi, JH",
+        "country_code": "IN-JH",
+        "tier_level": 3,
+        "criticality_level": "high",
+        "materialIndex": 1.5,
+        "base_cost": 2100,
+        "score": 82,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 250, "weight_ton": 250, "emission_factor": 0.00012, "cost": 35000 } }
+    }
+  ],
+  "B3": [
+    {
+      "id": "A-B3-1",
+      "data": {
+        "label": "MP Bauxite (Sustainable)",
+        "location": "Katni, MP",
+        "country_code": "IN-MP",
+        "tier_level": 4,
+        "criticality_level": "medium",
+        "materialIndex": 2.1,
+        "base_cost": 1200,
+        "score": 75,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Rail", "distance_km": 500, "weight_ton": 300, "emission_factor": 0.00006, "cost": 25000 } }
+    }
   ]
 }
