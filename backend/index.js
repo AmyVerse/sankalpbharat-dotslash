@@ -38,7 +38,9 @@ try {
 
 // Attach generic CRUD routes
 const crudRoutes = require("./routes/crudRoutes");
+const whatsappRoutes = require("./routes/whatsapp");
 app.use("/api", crudRoutes);
+app.use("/whatsapp", whatsappRoutes);
 
 // Local Development Server listener
 // This runs only on your Mac, Vercel ignores it.
