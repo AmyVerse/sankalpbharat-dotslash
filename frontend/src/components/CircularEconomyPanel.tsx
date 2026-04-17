@@ -57,15 +57,13 @@ export const CircularEconomyPanel: React.FC<CircularEconomyPanelProps> = ({ node
       const consumer = WASTE_CONSUMERS[flow.produces_waste];
       if (!consumer) return;
 
-      // Don't suggest reusing your own waste
       if (consumer.consumer_label.includes(node.id)) return;
 
-      // Find the edge from this node to estimate transport baseline
       const nodeEdge = edges.find(e => e.source === node.id);
       const baseDistance = nodeEdge?.data?.logistics?.distance_km || 500;
       const baseCost = node.data.base_cost || 2000;
 
-      const transportCost = Math.round(baseDistance * 0.08 * 12); // ₹/km * weight estimate
+      const transportCost = Math.round(baseDistance * 0.08 * 12);
       const freshCost = Math.round(baseCost * (consumer.savings_pct / 100) * 10);
       const netSaving = freshCost - transportCost;
 
@@ -85,7 +83,6 @@ export const CircularEconomyPanel: React.FC<CircularEconomyPanelProps> = ({ node
       }
     });
 
-    // Sort by highest net saving
     return results.sort((a, b) => b.netSaving - a.netSaving);
   }, [nodes, edges]);
 
@@ -95,77 +92,171 @@ export const CircularEconomyPanel: React.FC<CircularEconomyPanelProps> = ({ node
   if (opportunities.length === 0) return null;
 
   return (
-    <div className="absolute bottom-4 right-4 w-80 bg-slate-900/95 border border-slate-700/50 backdrop-blur-md rounded-xl shadow-2xl z-20 text-white font-sans overflow-hidden">
+    <div
+      className="absolute bottom-4 right-4 z-20 overflow-hidden"
+      style={{
+        width: '320px',
+        background: '#fcf9f4',
+        border: '1px solid rgba(218, 194, 182, 0.4)',
+        borderRadius: '6px',
+        fontFamily: "'Trebuchet MS', 'Cera Pro', sans-serif",
+        boxShadow: '0 8px 30px rgba(85, 58, 52, 0.04), 0 2px 8px rgba(85, 58, 52, 0.08)',
+      }}
+    >
       {/* Header */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between p-3 bg-gradient-to-r from-emerald-900/40 to-teal-900/40 border-b border-slate-700/50 hover:from-emerald-900/60 hover:to-teal-900/60 transition-colors"
+        style={{
+          width: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          background: '#ebe8e3',
+          border: 'none',
+          borderBottom: '1px solid rgba(218, 194, 182, 0.3)',
+          cursor: 'pointer',
+        }}
       >
-        <div className="flex items-center gap-2">
-          <Recycle size={14} className="text-emerald-400" />
-          <span className="text-[10px] uppercase font-bold text-emerald-300 tracking-widest">Circular Economy</span>
-          <span className="text-[9px] bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded-full font-bold">{opportunities.length}</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <Recycle size={14} style={{ color: '#553d00' }} />
+          <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#553a34', letterSpacing: '0.02em' }}>
+            Circular Economy
+          </span>
+          <span
+            style={{
+              fontSize: '0.65rem',
+              background: '#ffdea0',
+              color: '#261900',
+              padding: '2px 8px',
+              borderRadius: '12px',
+              fontWeight: 700,
+            }}
+          >
+            {opportunities.length}
+          </span>
         </div>
-        {isOpen ? <ChevronDown size={12} className="text-slate-500" /> : <ChevronUp size={12} className="text-slate-500" />}
+        {isOpen
+          ? <ChevronDown size={12} style={{ color: '#877369' }} />
+          : <ChevronUp size={12} style={{ color: '#877369' }} />
+        }
       </button>
 
       {isOpen && (
         <>
           {/* Summary Strip */}
-          <div className="flex gap-2 p-2.5 border-b border-slate-800">
-            <div className="flex-1 bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-2 text-center">
-              <div className="text-[8px] uppercase font-bold text-slate-500 tracking-wider">Est. Savings</div>
-              <div className="text-sm font-mono font-bold text-emerald-400">₹{totalSavings.toLocaleString()}</div>
+          <div style={{ display: 'flex', gap: '8px', padding: '12px 14px', borderBottom: '1px solid rgba(218, 194, 182, 0.25)' }}>
+            <div
+              style={{
+                flex: 1,
+                background: '#ffffff',
+                border: '1px solid rgba(218, 194, 182, 0.3)',
+                borderRadius: '6px',
+                padding: '10px 8px',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#877369', letterSpacing: '0.03em' }}>Est. Savings</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#553d00', fontFamily: "'Georgia', serif", marginTop: '2px' }}>
+                ₹{totalSavings.toLocaleString()}
+              </div>
             </div>
-            <div className="flex-1 bg-teal-500/10 border border-teal-500/20 rounded-lg p-2 text-center">
-              <div className="text-[8px] uppercase font-bold text-slate-500 tracking-wider">CO₂ Avoided</div>
-              <div className="text-sm font-mono font-bold text-teal-400">{totalEmissionReduction.toLocaleString()} kg</div>
+            <div
+              style={{
+                flex: 1,
+                background: '#ffffff',
+                border: '1px solid rgba(218, 194, 182, 0.3)',
+                borderRadius: '6px',
+                padding: '10px 8px',
+                textAlign: 'center',
+              }}
+            >
+              <div style={{ fontSize: '0.6rem', fontWeight: 700, color: '#877369', letterSpacing: '0.03em' }}>CO₂ Avoided</div>
+              <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#974726', fontFamily: "'Georgia', serif", marginTop: '2px' }}>
+                {totalEmissionReduction.toLocaleString()} kg
+              </div>
             </div>
           </div>
 
           {/* Opportunity Cards */}
-          <div className="max-h-[250px] overflow-y-auto p-2 space-y-1.5">
+          <div style={{ maxHeight: '260px', overflowY: 'auto', padding: '10px 12px' }}>
             {opportunities.map((opp, idx) => {
               const isExpanded = expandedIdx === idx;
               return (
-                <div key={idx} className="bg-slate-800/60 border border-slate-700/40 rounded-lg overflow-hidden">
+                <div
+                  key={idx}
+                  style={{
+                    background: idx % 2 === 0 ? '#ffffff' : '#fcf9f4',
+                    border: '1px solid rgba(218, 194, 182, 0.25)',
+                    borderRadius: '6px',
+                    marginBottom: '8px',
+                    overflow: 'hidden',
+                  }}
+                >
                   <button
                     onClick={() => setExpandedIdx(isExpanded ? null : idx)}
-                    className="w-full text-left p-2.5 flex items-center gap-2.5 hover:bg-slate-700/30 transition-colors"
+                    style={{
+                      width: '100%',
+                      textAlign: 'left',
+                      padding: '10px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      background: 'transparent',
+                      border: 'none',
+                      cursor: 'pointer',
+                    }}
                   >
-                    <div className="w-6 h-6 rounded-full bg-emerald-500/15 flex items-center justify-center shrink-0">
-                      <Recycle size={11} className="text-emerald-400" />
+                    <div
+                      style={{
+                        width: '28px',
+                        height: '28px',
+                        borderRadius: '50%',
+                        background: '#ffdea0',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Recycle size={12} style={{ color: '#553d00' }} />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] text-slate-200 font-semibold truncate">{opp.wasteLabel}</div>
-                      <div className="text-[9px] text-slate-500 flex items-center gap-1 mt-0.5">
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: '0.7rem', color: '#553a34', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {opp.wasteLabel}
+                      </div>
+                      <div style={{ fontSize: '0.6rem', color: '#877369', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '3px' }}>
                         <Factory size={8} /> {opp.sourceLabel} <ArrowRight size={8} /> {opp.consumerLabel}
                       </div>
                     </div>
-                    <span className="text-[10px] font-mono font-bold text-emerald-400 shrink-0">₹{opp.netSaving.toLocaleString()}</span>
+                    <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#553d00', fontFamily: "'Georgia', serif", flexShrink: 0 }}>
+                      ₹{opp.netSaving.toLocaleString()}
+                    </span>
                   </button>
 
                   {isExpanded && (
-                    <div className="p-3 pt-0 border-t border-slate-700/30 bg-slate-800/30">
-                      <p className="text-[10px] text-slate-400 italic my-2 leading-relaxed">
+                    <div style={{ padding: '0 12px 12px', borderTop: '1px solid rgba(218, 194, 182, 0.2)', background: '#ebe8e3' }}>
+                      <p style={{ fontSize: '0.68rem', color: '#553a34', fontStyle: 'italic', margin: '10px 0', lineHeight: 1.6 }}>
                         Reusing {opp.wasteLabel.toLowerCase()} from {opp.sourceLabel} eliminates fresh procurement for {opp.consumerLabel}, saving {opp.savingsPct}% on material costs.
                       </p>
 
-                      <div className="grid grid-cols-3 gap-1.5 mt-2">
-                        <div className="bg-slate-900/60 border border-slate-700/30 rounded p-1.5 text-center">
-                          <div className="text-[8px] text-slate-500 uppercase font-bold">Transport</div>
-                          <div className="text-[10px] font-mono text-orange-400 mt-0.5">
-                            <Truck size={8} className="inline mr-0.5" />₹{opp.transportCostEstimate.toLocaleString()}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px' }}>
+                        <div style={{ background: '#fcf9f4', border: '1px solid rgba(218, 194, 182, 0.3)', borderRadius: '4px', padding: '8px 6px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#877369' }}>Transport</div>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#553d00', fontFamily: "'Georgia', serif", marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+                            <Truck size={9} />₹{opp.transportCostEstimate.toLocaleString()}
                           </div>
                         </div>
-                        <div className="bg-slate-900/60 border border-slate-700/30 rounded p-1.5 text-center">
-                          <div className="text-[8px] text-slate-500 uppercase font-bold">Fresh Cost</div>
-                          <div className="text-[10px] font-mono text-red-400 mt-0.5 line-through">₹{opp.freshProcurementCost.toLocaleString()}</div>
+                        <div style={{ background: '#fcf9f4', border: '1px solid rgba(218, 194, 182, 0.3)', borderRadius: '4px', padding: '8px 6px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#877369' }}>Fresh Cost</div>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#974726', fontFamily: "'Georgia', serif", marginTop: '4px', textDecoration: 'line-through' }}>
+                            ₹{opp.freshProcurementCost.toLocaleString()}
+                          </div>
                         </div>
-                        <div className="bg-slate-900/60 border border-slate-700/30 rounded p-1.5 text-center">
-                          <div className="text-[8px] text-slate-500 uppercase font-bold">CO₂ Saved</div>
-                          <div className="text-[10px] font-mono text-emerald-400 mt-0.5">
-                            <TrendingDown size={8} className="inline mr-0.5" />{opp.emissionReductionKg} kg
+                        <div style={{ background: '#fcf9f4', border: '1px solid rgba(218, 194, 182, 0.3)', borderRadius: '4px', padding: '8px 6px', textAlign: 'center' }}>
+                          <div style={{ fontSize: '0.55rem', fontWeight: 700, color: '#877369' }}>CO₂ Saved</div>
+                          <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#553d00', fontFamily: "'Georgia', serif", marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '2px' }}>
+                            <TrendingDown size={9} />{opp.emissionReductionKg} kg
                           </div>
                         </div>
                       </div>
