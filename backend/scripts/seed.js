@@ -7,7 +7,7 @@ const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 const rawSql = `
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
-TRUNCATE TABLE "Approval","Comment","Action","Recommendation","ScenarioResult","ForecastResult","DashboardSummary","SupplierScore","Emission","WasteRecord","Logistics","EnergyUsage","Purchase","Supplier","Plant","User" RESTART IDENTITY CASCADE;
+TRUNCATE TABLE "AuditLog","Approval","Comment","Action","Recommendation","ScenarioResult","ForecastResult","DashboardSummary","SupplierScore","Emission","WasteRecord","Logistics","EnergyUsage","Purchase","Supplier","Plant","User" RESTART IDENTITY CASCADE;
 INSERT INTO "User" (id,name,email,password_hash,role,department,created_at)
 SELECT gen_random_uuid(), 'User '||g, 'user'||g||'@company.com','hash','manager','dept'||(g%5), NOW() - (g||' days')::interval FROM generate_series(1,50) g;
 INSERT INTO "Plant" (id,name,city,country,business_unit)
@@ -41,5 +41,7 @@ INSERT INTO "Comment" (id,action_id,user_id,message,created_at)
 SELECT gen_random_uuid(), a.id,u.id,'Auto comment',NOW() FROM generate_series(1,250) g CROSS JOIN LATERAL (SELECT id FROM "Action" ORDER BY random() LIMIT 1) a CROSS JOIN LATERAL (SELECT id FROM "User" ORDER BY random() LIMIT 1) u;
 INSERT INTO "Approval" (id,action_id,user_id,decision,note,created_at)
 SELECT gen_random_uuid(), a.id,u.id,(ARRAY['approved','rejected','pending'])[1+floor(random()*3)],'Auto review',NOW() FROM generate_series(1,180) g CROSS JOIN LATERAL (SELECT id FROM "Action" ORDER BY random() LIMIT 1) a CROSS JOIN LATERAL (SELECT id FROM "User" ORDER BY random() LIMIT 1) u;
+INSERT INTO "AuditLog" (id,user_id,entity_type,entity_id,action,metadata,created_at)
+SELECT gen_random_uuid(), u.id, (ARRAY['plant','supplier','emission'])[1+floor(random()*3)], gen_random_uuid(), (ARRAY['Created Registry Node','Updated Carbon Factor','Sanctioned Audit Override','Flagged Anomaly'])[1+floor(random()*4)], '{"ip": "192.168.1.1"}'::jsonb, NOW() - (g||' hours')::interval FROM generate_series(1,100) g CROSS JOIN LATERAL (SELECT id FROM "User" ORDER BY random() LIMIT 1) u;
 `;
 async function main() { try { console.log('Seeding...'); await prisma.$executeRawUnsafe(rawSql); console.log('Done'); } catch (e) { console.error(e) } finally { await prisma.$disconnect(); await pool.end(); } } main();

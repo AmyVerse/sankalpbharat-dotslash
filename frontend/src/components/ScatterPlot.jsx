@@ -11,33 +11,57 @@ const ScatterPlot = ({ data, xKey, yKey, xAxisLabel, yAxisLabel, onNodeClick, ac
   const { xScale, yScale, xTicks, yTicks } = useMemo(() => {
     if (!data || data.length === 0) return { xScale: () => 0, yScale: () => 0, xTicks: [], yTicks: [] };
 
-    let maxX = Math.max(...data.map(d => d[xKey] || 0));
-    let maxY = Math.max(...data.map(d => d[yKey] || 0));
+    const valuesX = data.map(d => parseFloat(d[xKey]) || 0);
+    const valuesY = data.map(d => parseFloat(d[yKey]) || 0);
 
-    // Add 10% buffer
-    maxX = maxX * 1.1 || 100;
-    maxY = maxY * 1.1 || 100;
+    let minX = Math.min(...valuesX, 0);
+    let maxX = Math.max(...valuesX, 10);
+    let minY = Math.min(...valuesY, 0);
+    let maxY = Math.max(...valuesY, 10);
 
-    const scaleX = (val) => padding.left + (val / maxX) * (width - padding.left - padding.right);
-    const scaleY = (val) => height - padding.bottom - (val / maxY) * (height - padding.top - padding.bottom);
+    // Add 15% buffer
+    const bufferX = (maxX - minX) * 0.15 || 5;
+    const bufferY = (maxY - minY) * 0.15 || 5;
+    
+    minX -= bufferX;
+    maxX += bufferX;
+    minY -= bufferY;
+    maxY += bufferY;
 
-    const formatCurrency = (val) => `₹${(val / 1000000).toFixed(1)}M`;
-    const formatNumber = (val) => `${(val / 1000).toFixed(1)}k`;
+    const rangeX = maxX - minX;
+    const rangeY = maxY - minY;
 
-    // Generating roughly 5 ticks per axis
-    const ticksX = Array.from({ length: 6 }).map((_, i) => ({
-      value: (maxX / 5) * i,
-      pos: scaleX((maxX / 5) * i),
-      label: formatCurrency((maxX / 5) * i)
-    }));
+    const scaleX = (val) => padding.left + ((val - minX) / rangeX) * (width - padding.left - padding.right);
+    const scaleY = (val) => height - padding.bottom - ((val - minY) / rangeY) * (height - padding.top - padding.bottom);
 
-    const ticksY = Array.from({ length: 6 }).map((_, i) => ({
-      value: (maxY / 5) * i,
-      pos: scaleY((maxY / 5) * i),
-      label: formatNumber((maxY / 5) * i)
-    }));
+    const formatCurrency = (val) => {
+      if (val === 0) return "₹0";
+      if (val >= 1000000) return `₹${(val / 1000000).toFixed(val < 5000000 ? 2 : 1)}M`;
+      if (val >= 1000) return `₹${(val / 1000).toFixed(1)}k`;
+      return `₹${val.toFixed(0)}`;
+    };
 
-    return { xScale: scaleX, yScale: scaleY, xTicks: ticksX, yTicks: ticksY, maxX, maxY };
+    const formatNumber = (val) => {
+      if (val === 0) return "0";
+      if (val >= 1000) return `${(val / 1000).toFixed(val < 5000 ? 2 : 1)}k`;
+      return val.toFixed(0);
+    };
+
+    // Generating ticks with collision safety and adaptive density
+    const tickCount = 5;
+    const ticksX = [];
+    for (let i = 0; i <= tickCount; i++) {
+        const val = minX + (rangeX / tickCount) * i;
+        ticksX.push({ value: val, pos: scaleX(val), label: formatCurrency(val) });
+    }
+
+    const ticksY = [];
+    for (let i = 0; i <= tickCount; i++) {
+        const val = minY + (rangeY / tickCount) * i;
+        ticksY.push({ value: val, pos: scaleY(val), label: formatNumber(val) });
+    }
+
+    return { xScale: scaleX, yScale: scaleY, xTicks: ticksX, yTicks: ticksY, zeroX: scaleX(0), zeroY: scaleY(0) };
   }, [data, xKey, yKey]);
 
   // Determine quadrant colors or apply custom color logic
@@ -101,7 +125,7 @@ const ScatterPlot = ({ data, xKey, yKey, xAxisLabel, yAxisLabel, onNodeClick, ac
           stroke="#553a34"
           strokeWidth="1.5"
           strokeDasharray="5 5"
-          opacity="0.3"
+          opacity="0.2"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1 }}
           transition={{ duration: 1.5, ease: "easeInOut" }}
@@ -160,21 +184,21 @@ const ScatterPlot = ({ data, xKey, yKey, xAxisLabel, yAxisLabel, onNodeClick, ac
                 x2="0"
                 y2={height - padding.bottom - cy}
                 stroke={style.fill}
-                strokeWidth="1.5"
+                strokeWidth="1.2"
                 strokeDasharray="4 2"
-                opacity="0.4"
+                opacity="0.15"
                 className="transition-all duration-300"
               />
 
               {/* Marker for Active Node */}
-              {isActive && <circle r="15" fill="none" stroke={style.fill} strokeWidth="1" strokeDasharray="3 2" className="animate-spin-slow" />}
+              {isActive && <circle r="12" fill="none" stroke={style.fill} strokeWidth="1" strokeDasharray="3 2" className="animate-spin-slow" />}
 
               {/* Main Node Node - Flat Tactile Feel */}
               <circle
-                r={isActive ? 10 : 7}
+                r={isActive ? 8 : 4}
                 fill={style.fill}
                 stroke={style.stroke}
-                strokeWidth={isActive ? 3 : 2}
+                strokeWidth={isActive ? 2 : 1.5}
                 className="transition-all duration-300"
               />
 

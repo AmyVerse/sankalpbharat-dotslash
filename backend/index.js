@@ -1,5 +1,4 @@
 const express = require("express");
-const serverless = require("serverless-http");
 const cors = require("cors");
 const swaggerUi = require('swagger-ui-express');
 const fs = require('fs');
@@ -11,6 +10,10 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+
+app.get("/", (req, res) => {
+  res.json({ message: "ESGAudit Backend is live", status: "ok" });
+});
 
 app.get("/api", (req, res) => {
   res.send("Hello from Symbiosis AI API");
@@ -52,5 +55,5 @@ if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
   });
 }
 
-// Export the serverless-wrapped app for Vercel deployment
-module.exports = serverless(app);
+// Export the app for Vercel deployment
+module.exports = app;

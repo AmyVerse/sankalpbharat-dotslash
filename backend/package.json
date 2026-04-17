@@ -7,6 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
     "build": "prisma generate && node scripts/generateSwagger.js",
+    "postinstall": "prisma generate",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
@@ -27,7 +28,6 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "pg": "^8.20.0",
-    "serverless-http": "^4.0.0",
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {

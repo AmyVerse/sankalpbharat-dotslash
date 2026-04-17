@@ -11,8 +11,16 @@ const BarChart = ({ data, title }) => {
   const graphWidth = width - padding.left - padding.right;
   const graphHeight = height - padding.top - padding.bottom;
 
-  const maxValue = Math.max(...data.map(d => d.value), 10);
+  const { minValue, maxValue, range } = React.useMemo(() => {
+    const values = data.map(d => d.value);
+    const min = Math.min(...values, 0);
+    const max = Math.max(...values, 10);
+    return { minValue: min, maxValue: max, range: max - min };
+  }, [data]);
+
   const axisY = height - padding.bottom;
+  const getY = (v) => height - padding.bottom - ((v - minValue) / range * graphHeight);
+  const zeroLineY = getY(0);
 
   const handleMouseMove = (e, d) => {
     setTooltip({
@@ -41,7 +49,8 @@ const BarChart = ({ data, title }) => {
         >
           {/* Grid lines - Horizontal */}
           {[0, 0.25, 0.5, 0.75, 1].map((p, i) => {
-            const ly = axisY - (p * graphHeight);
+            const ly = height - padding.bottom - (p * graphHeight);
+            const val = minValue + (p * range);
             return (
               <g key={i}>
                 <line
@@ -62,15 +71,15 @@ const BarChart = ({ data, title }) => {
                   fill="#877369"
                   className="text-[12px] font-bold tabular-nums"
                 >
-                  {Math.round(p * maxValue).toLocaleString()}
+                  {Math.round(val).toLocaleString()}
                 </text>
               </g>
             );
           })}
 
           {/* Axes */}
-          <line x1={padding.left} y1={padding.top} x2={padding.left} y2={axisY} stroke="#553a34" strokeWidth="1.5" />
-          <line x1={padding.left} y1={axisY} x2={width - padding.right} y2={axisY} stroke="#553a34" strokeWidth="1.5" />
+          <line x1={padding.left} y1={padding.top} x2={padding.left} y2={height - padding.bottom} stroke="#553a34" strokeWidth="1.5" />
+          <line x1={padding.left} y1={zeroLineY} x2={width - padding.right} y2={zeroLineY} stroke="#553a34" strokeWidth="1.5" />
 
           {/* Dynamic Bars */}
           {data.map((d, i) => {
@@ -78,8 +87,9 @@ const BarChart = ({ data, title }) => {
             const slotWidth = graphWidth / barCount;
             const barWidth = slotWidth * 0.6;
             const x = padding.left + (i * slotWidth) + (slotWidth - barWidth) / 2;
-            const barHeight = (d.value / maxValue) * graphHeight;
-            const y = axisY - barHeight;
+            
+            const barHeight = (Math.abs(d.value) / range) * graphHeight;
+            const y = d.value >= 0 ? zeroLineY - barHeight : zeroLineY;
 
             return (
               <g
@@ -99,29 +109,27 @@ const BarChart = ({ data, title }) => {
                   height={barHeight}
                   fill={d.color || "#553a34"}
                   className="hover:fill-[#974726] transition-colors"
-                  style={{ originY: 1 }}
                   initial={{ scaleY: 0 }}
                   animate={{ scaleY: 1 }}
+                  style={{ originY: d.value >= 0 ? 1 : 0 }}
                   transition={{ duration: 0.8, delay: i * 0.1, ease: [0.33, 1, 0.68, 1] }}
                 />
 
-                {/* Value Label (Top of Bar) */}
+                {/* Value Label */}
                 <motion.text
                   x={x + barWidth / 2}
-                  y={y - 12}
+                  y={d.value >= 0 ? y - 12 : y + barHeight + 20}
                   textAnchor="middle"
                   fill="#553a34"
                   className="text-[13px] font-bold opacity-0 group-hover:opacity-100 transition-opacity"
-                  initial={{ opacity: 0, y: 5 }}
-                  animate={{ y: 0 }}
                 >
                   {d.value.toLocaleString()}
                 </motion.text>
 
-                {/* Category Label (Bottom of Axis) */}
+                {/* Category Label */}
                 <text
                   x={x + barWidth / 2}
-                  y={axisY + 30}
+                  y={height - padding.bottom + 30}
                   textAnchor="middle"
                   fill="#877369"
                   className="text-[12px] font-bold uppercase tracking-widest"

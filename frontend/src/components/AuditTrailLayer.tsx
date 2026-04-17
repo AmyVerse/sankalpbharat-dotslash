@@ -1,16 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Download, Filter, UserCheck, UserX, UserMinus } from 'lucide-react';
 
-const AUDIT_LOGS = [
-  { id: 'TX-9901', auditor: 'Amulya A.', role: 'Chief ESG Auditor', action: 'Approved Supplier Swap', status: 'Approved', timestamp: '2026-04-18 00:12:44' },
-  { id: 'TX-9902', auditor: 'Sarah K.', role: 'Logistics Manager', action: 'Modified Tariff Multiplier', status: 'Approved', timestamp: '2026-04-17 23:45:12' },
-  { id: 'TX-9903', auditor: 'David L.', role: 'Compliance Officer', action: 'Flagged China Hotspot', status: 'Flagged', timestamp: '2026-04-17 22:10:05' },
-  { id: 'TX-9904', auditor: 'Amulya A.', role: 'Chief ESG Auditor', action: 'Emergency Policy Override', status: 'Approved', timestamp: '2026-04-17 21:05:33' },
-  { id: 'TX-9905', auditor: 'Robert B.', role: 'Procurement Lead', action: 'Added New Supplier ID-221', status: 'Pending', timestamp: '2026-04-17 19:30:11' },
-  { id: 'TX-9906', auditor: 'Sarah K.', role: 'Logistics Manager', action: 'Rejected Route Change', status: 'Rejected', timestamp: '2026-04-17 18:15:00' },
-];
-
 export const AuditTrailLayer = () => {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
+        const response = await fetch(`${baseUrl}/api/auditLog`);
+        const data = await response.json();
+        setLogs(data || []);
+      } catch (err) {
+        console.error("Audit Trail Sync Failure:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLogs();
+  }, []);
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-full bg-[#fcf9f4]">
+       <div className="flex flex-col items-center gap-6">
+          <div className="w-12 h-12 border-4 border-[#553a34] border-t-transparent rounded-full animate-spin" />
+          <span className="text-[12px] font-bold text-[#553a34] uppercase tracking-[0.3em]">Deciphering Archival Ledger</span>
+       </div>
+    </div>
+  );
+
   return (
     <div className="h-full bg-[#fcf9f4] p-10 flex flex-col gap-8 overflow-hidden">
       <header className="flex justify-between items-end">
@@ -28,10 +47,10 @@ export const AuditTrailLayer = () => {
         <div className="flex-1 flex items-center gap-3 bg-[#fcf9f4] px-4 py-3 border border-[#dac2b6] border-opacity-20 rounded-sm">
            <Search size={18} className="text-[#877369]" />
            <input type="text" placeholder="Search by Auditor ID or Action Hash..." className="bg-transparent border-none text-[13px] w-full focus:ring-0 placeholder-[#877369] text-[#553a34] font-medium" />
-        </div>
-        <button className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-[#877369] hover:text-[#553a34] px-4">
-           <Filter size={14} /> Refine Results
-        </button>
+         </div>
+         <button className="flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest text-[#877369] hover:text-[#553a34] px-4">
+            <Filter size={14} /> Refine Results
+         </button>
       </div>
 
       <div className="flex-1 overflow-auto editorial-card bg-white rounded-sm custom-scrollbar">
@@ -39,41 +58,40 @@ export const AuditTrailLayer = () => {
           <thead className="sticky top-0 bg-[#ebe8e3] z-10">
             <tr className="border-b border-[#dac2b6] border-opacity-40">
               <th className="px-6 py-5 text-[12px] font-bold uppercase tracking-widest text-[#553a34]">Ref ID</th>
-              <th className="px-6 py-5 text-[12px] font-bold uppercase tracking-widest text-[#553a34]">Auditor / Role</th>
+              <th className="px-6 py-5 text-[12px] font-bold uppercase tracking-widest text-[#553a34]">Entity</th>
               <th className="px-6 py-5 text-[12px] font-bold uppercase tracking-widest text-[#553a34]">Archival Action</th>
               <th className="px-6 py-5 text-[12px] font-bold uppercase tracking-widest text-[#553a34]">Status</th>
               <th className="px-6 py-5 text-[12px] font-bold uppercase tracking-widest text-[#553a34]">Time Recorded</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#dac2b6]/20">
-            {AUDIT_LOGS.map(log => (
+            {logs.length > 0 ? logs.map(log => (
               <tr key={log.id} className="hover:bg-[#fcf9f4] transition-all group">
-                <td className="px-6 py-6 text-[13px] font-bold text-[#974726] newsreader">{log.id}</td>
+                <td className="px-6 py-6 text-[13px] font-bold text-[#974726] newsreader">{log.id.slice(0, 8)}</td>
                 <td className="px-6 py-6">
-                   <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 rounded-full bg-[#ebe8e3] flex items-center justify-center text-[12px] font-bold text-[#553a34]">
-                         {log.auditor.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div className="flex flex-col">
-                         <span className="text-[13px] font-bold text-[#553a34]">{log.auditor}</span>
-                         <span className="text-[11px] text-[#877369] font-bold uppercase tracking-tighter">{log.role}</span>
-                      </div>
+                   <div className="flex flex-col">
+                      <span className="text-[13px] font-bold text-[#553a34]">{log.entity_type}</span>
+                      <span className="text-[11px] text-[#877369] font-bold uppercase tracking-tighter">{log.entity_id.slice(0, 12)}...</span>
                    </div>
                 </td>
                 <td className="px-6 py-6 text-[13px] font-medium text-[#553a34] italic">{log.action}</td>
                 <td className="px-6 py-6">
-                   <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-tighter ${
-                     log.status === 'Approved' ? 'bg-[#15803d]/10 text-[#15803d]' : 
-                     log.status === 'Rejected' ? 'bg-[#b91c1c]/10 text-[#b91c1c]' : 
-                     'bg-[#553d00]/10 text-[#553d00]'
-                   }`}>
-                      {log.status === 'Approved' ? <UserCheck size={12} /> : log.status === 'Rejected' ? <UserX size={12} /> : <UserMinus size={12} />}
-                      {log.status}
+                   <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-tighter bg-[#ebe8e3] text-[#553a34]`}>
+                      <UserCheck size={12} />
+                      Recorded
                    </div>
                 </td>
-                <td className="px-6 py-6 text-[12px] font-bold text-[#877369] uppercase tabular-nums">{log.timestamp}</td>
+                <td className="px-6 py-6 text-[12px] font-bold text-[#877369] uppercase tabular-nums">
+                  {new Date(log.created_at).toLocaleString()}
+                </td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan={5} className="px-6 py-20 text-center text-[#877369] font-bold uppercase tracking-[0.2em] text-[12px]">
+                  No archival entries found in global ledger.
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

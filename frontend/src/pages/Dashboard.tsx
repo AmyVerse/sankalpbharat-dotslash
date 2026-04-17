@@ -59,9 +59,9 @@ export default function Dashboard() {
             <div className="w-10 h-10 bg-[#553a34] rounded flex items-center justify-center shadow-sm">
               <Activity className="text-[#ffdea0] w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-[#553a34] uppercase">ESGAudit</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[#553a34]">ESGAudit</h1>
           </div>
-          <span className="text-[12px] text-[#877369] font-bold tracking-[0.3em] uppercase opacity-60">Enterprise Console</span>
+          <span className="text-[12px] text-[#877369] font-bold tracking-[0.3em] opacity-60">Enterprise Console</span>
         </div>
 
         <div className="flex-1 py-10 px-6 space-y-3 overflow-y-auto custom-scrollbar">
