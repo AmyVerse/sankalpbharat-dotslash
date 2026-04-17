@@ -527,12 +527,7 @@ export default function SupplyChainDashboard() {
   return (
     <div className="h-screen w-full bg-[#fcf9f4] flex flex-col font-sans overflow-hidden text-[#553a34] selection:bg-[#ffdea0] selection:text-[#261900]">
       <div className="h-20 border-b border-[#dac2b6] border-opacity-30 flex items-center justify-between px-10 bg-white z-20 shadow-sm">
-        <div className="flex flex-col">
-          <h1 className="text-2xl font-bold text-[#553a34] tracking-tight">
-            SYMBIOSIS <span className="text-[#974726] font-black italic">AI</span>
-          </h1>
-          <span className="text-[9px] text-[#877369] font-bold tracking-[0.3em] uppercase">Supply Topology Engine</span>
-        </div>
+        <div></div>
 
         <div className="flex gap-6 items-center">
           {/* Toggle for Alternatives */}
