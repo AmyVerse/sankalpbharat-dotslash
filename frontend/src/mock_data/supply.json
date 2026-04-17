@@ -1,0 +1,13 @@
+{
+  "nodes": [
+    { "id": "P1", "type": "plant", "position": { "x": 800, "y": 250 }, "data": { "label": "Nagpur Assembly", "emissions": 120, "cost": 0 } },
+    { "id": "S1", "type": "supplier", "position": { "x": 400, "y": 150 }, "data": { "label": "Midstream Steel", "score": 45, "tier": 1 } },
+    { "id": "S2", "type": "supplier", "position": { "x": 400, "y": 350 }, "data": { "label": "Eco-Polymer Co", "score": 85, "tier": 1 } },
+    { "id": "S3", "type": "supplier", "position": { "x": 50, "y": 150 }, "data": { "label": "Dirty Mining Corp", "score": 15, "tier": 2 } }
+  ],
+  "edges": [
+    { "id": "e3-1", "source": "S3", "target": "S1", "label": "Raw Ore", "animated": true, "style": { "stroke": "#ef4444", "strokeWidth": 4 } },
+    { "id": "e1-p", "source": "S1", "target": "P1", "label": "Steel Sheets", "animated": true },
+    { "id": "e2-p", "source": "S2", "target": "P1", "label": "Recycled Plastic", "animated": true, "style": { "stroke": "#10b981" } }
+  ]
+}

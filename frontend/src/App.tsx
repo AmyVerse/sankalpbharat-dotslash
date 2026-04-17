@@ -1,10 +1,25 @@
 import { useState } from 'react';
-
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import SupplyChainDashboard from './components/SupplyChainDashboard';
 function App() {
   const [isLogin, setIsLogin] = useState(true);
 
   return (
+    // make a route for the dashboard and the login page
+    <Router>
+      <Routes>
+        <Route path="/" element={<LoginPage isLogin={isLogin} setIsLogin={setIsLogin} />} />
+        <Route path="/dashboard" element={<SupplyChainDashboard />} />
+      </Routes>
+    </Router>
+  );
+}
+
+const LoginPage = ({ isLogin, setIsLogin }: { isLogin: boolean; setIsLogin: React.Dispatch<React.SetStateAction<boolean>> }) => {
+  return (
+
     <div className="min-h-screen bg-neutral-950 flex flex-col md:flex-row font-sans selection:bg-neutral-800 selection:text-white">
+      
       
       {/* Left Pane - Branding & Tagline */}
       <div className="flex-1 flex flex-col justify-between px-8 py-12 md:px-20 lg:px-32 bg-neutral-950">
