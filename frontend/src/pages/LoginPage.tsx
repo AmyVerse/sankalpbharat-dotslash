@@ -41,11 +41,11 @@ export default function LoginPage({ isLogin, setIsLogin }: { isLogin: boolean; s
               Enterprise Sustainability Infrastructure
             </div>
 
-            <h1 className="text-6xl lg:text-8xl font-bold tracking-tight text-[#553a34] leading-[0.9] mb-8">
+            <h1 className="text-6xl lg:text-8xl font-bold text-[#553a34] leading-[0.85] mb-8">
               ESGAudit
             </h1>
-            <p className="text-lg text-[#553a34] font-medium leading-relaxed max-w-sm">
-              A robust, backend-driven platform empowering corporates to track, control, and reduce Scope 1, 2, and 3 carbon emissions for a sustainable future.
+            <p className="text-xl text-[#553a34] font-medium leading-relaxed max-w-sm">
+              A robust, architecture-driven platform empowering corporates to track, control, and reduce Scope 1, 2, and 3 carbon emissions for a sustainable enterprise future.
             </p>
           </div>
 

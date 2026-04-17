@@ -51,59 +51,6 @@ const SupplierDashboard = ({ activeTime }) => {
 
   return (
     <div className="flex h-full w-full overflow-hidden bg-[#fcf9f4]">
-      
-      {/* Supplier List Sidebar - Editorial Style */}
-      <aside className="w-80 bg-[#ebe8e3] border-r border-[#dac2b6] border-opacity-30 flex flex-col relative z-10 hidden lg:flex">
-        <div className="p-8 border-b border-[#dac2b6] border-opacity-30">
-          <h2 className="text-[10px] font-bold text-[#553a34] mb-2 uppercase tracking-[0.2em]">Tier 1 Suppliers</h2>
-          <p className="text-[11px] text-[#877369] font-medium leading-normal">Select vendor to view specific operational risk telemetry.</p>
-        </div>
-        
-        <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-4">
-          {supplierData.map(sup => (
-            <div 
-              key={sup.id}
-              onClick={() => setActiveSupplierId(sup.id)}
-              className={`p-5 rounded-md border transition-all cursor-pointer ${
-                activeSupplierId === sup.id 
-                ? 'bg-[#553a34] border-[#553a34] text-white' 
-                : 'bg-white border-[#dac2b6] border-opacity-30 hover:border-[#877369] text-[#553a34]'
-              }`}
-            >
-              <div className="flex justify-between items-start mb-3">
-                <span className="font-bold text-sm tracking-tight">{sup.name}</span>
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-sm uppercase tracking-wider ${
-                  activeSupplierId === sup.id ? 'bg-white/20 text-white' :
-                  sup.criticality_level === 'Critical' ? 'bg-[#b91c1c]/10 text-[#b91c1c]' :
-                  sup.criticality_level === 'High' ? 'bg-[#974726]/10 text-[#974726]' :
-                  'bg-[#553a34]/10 text-[#553a34]'
-                }`}>
-                  {sup.criticality_level}
-                </span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 mt-4 text-[11px] font-bold">
-                <div className="flex flex-col">
-                  <span className={`${activeSupplierId === sup.id ? 'text-white/60' : 'text-[#877369] font-medium'} text-[9px] uppercase tracking-wide mb-1`}>Total Impact</span>
-                  <span>{sup.emissions.toLocaleString()} tCO₂e</span>
-                </div>
-                <div className="flex flex-col text-right">
-                  <span className={`${activeSupplierId === sup.id ? 'text-white/60' : 'text-[#877369] font-medium'} text-[9px] uppercase tracking-wide mb-1`}>Financial Exposure</span>
-                  <span className={`transition-colors duration-500 ${activeSupplierId === sup.id ? 'text-white' : cbamEnabled && sup.tax_applied > 0 ? 'text-[#b91c1c]' : 'text-[#15803d]'}`}>
-                    {formatCurrency(sup.adjusted_spend)}
-                  </span>
-                  {cbamEnabled && (
-                    <span className={`text-[9px] ${activeSupplierId === sup.id ? 'text-white/80 animate-pulse' : 'text-[#b91c1c] animate-pulse'} mt-0.5`}>
-                      (+{formatCurrency(sup.tax_applied)} Tax)
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </aside>
-
       {/* Main Content */}
       <div className="flex-1 p-10 overflow-y-auto custom-scrollbar flex flex-col gap-10 relative">
         

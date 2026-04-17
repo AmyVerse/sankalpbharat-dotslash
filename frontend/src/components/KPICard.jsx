@@ -32,15 +32,15 @@ const KPICard = ({ title, value, subtext, trend, trendLabel, color = "emerald" }
   return (
     <div className="editorial-card p-6 flex flex-col gap-3 relative overflow-hidden group transition-all hover:bg-white/50">
       {/* Archival Label Feel */}
-      <h3 className="text-[10px] font-bold text-secondary uppercase tracking-widest">{title}</h3>
+      <h3 className="text-[12px] font-bold text-secondary uppercase tracking-widest">{title}</h3>
       <div className="flex items-baseline gap-2">
         <span className="text-4xl font-bold text-primary tracking-tight leading-none">{value}</span>
-        {subtext && <span className="text-xs text-[#877369] font-semibold">{subtext}</span>}
+        {subtext && <span className="text-[13px] text-[#877369] font-bold uppercase tracking-tight">{subtext}</span>}
       </div>
       
       {trend && (
         <div className="flex items-center gap-2 mt-auto pt-2">
-          <div className={`flex items-center text-[10px] font-bold px-2.5 py-1 rounded-full border ${selectedBorder} ${selectedBg} ${selectedColor} uppercase tracking-tight`}>
+          <div className={`flex items-center text-[11px] font-bold px-3 py-1.5 rounded-full border ${selectedBorder} ${selectedBg} ${selectedColor} uppercase tracking-tight`}>
             {isPositive ? '↑' : '↓'} {trendLabel}
           </div>
         </div>

@@ -47,9 +47,23 @@ const ScatterPlot = ({ data, xKey, yKey, xAxisLabel, yAxisLabel, onNodeClick, ac
     // Default Color Logic if none provided - Editorial Espresso
     return { fill: "#553a34", stroke: "#3a2824" };
   };
+  // Sort data for connecting lines
+  const sortedData = useMemo(() => {
+    return [...data].sort((a, b) => (a[xKey] || 0) - (b[xKey] || 0));
+  }, [data, xKey]);
+
+  // Generate path data
+  const pathData = useMemo(() => {
+    if (sortedData.length < 2) return "";
+    return sortedData.map((d, i) => {
+      const x = xScale(d[xKey]);
+      const y = yScale(d[yKey]);
+      return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
+    }).join(' ');
+  }, [sortedData, xScale, yScale]);
 
   return (
-    <div className="w-full h-full min-h-[400px] relative font-sans text-[10px]">
+    <div className="w-full h-full min-h-[400px] relative font-sans text-[12px]">
       <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full overflow-visible" preserveAspectRatio="xMidYMid meet">
         {/* Grid Lines - Subtle Tonal Shift */}
         {yTicks.map((tick, i) => (
@@ -80,30 +94,43 @@ const ScatterPlot = ({ data, xKey, yKey, xAxisLabel, yAxisLabel, onNodeClick, ac
           />
         ))}
 
+        {/* Connecting Line - Technical Tactical Style */}
+        <motion.path
+          d={pathData}
+          fill="none"
+          stroke="#553a34"
+          strokeWidth="1.5"
+          strokeDasharray="5 5"
+          opacity="0.3"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1.5, ease: "easeInOut" }}
+        />
+
         {/* Axes - Bold Editorial Black/Espresso */}
         <line x1={padding.left} y1={height - padding.bottom} x2={width - padding.right} y2={height - padding.bottom} stroke="#553a34" strokeWidth="2" />
         <line x1={padding.left} y1={padding.top} x2={padding.left} y2={height - padding.bottom} stroke="#553a34" strokeWidth="2" />
 
         {/* Ticks and Labels - Precise Metadata Style */}
         {xTicks.map((tick, i) => (
-          <g key={`tick-x-${i}`} transform={`translate(${tick.pos}, ${height - padding.bottom + 15})`}>
-            <line x1="0" y1="-15" x2="0" y2="-10" stroke="#553a34" />
-            <text textAnchor="middle" fill="#877369" className="font-bold tracking-tight uppercase">{tick.label}</text>
+          <g key={`tick-x-${i}`} transform={`translate(${tick.pos}, ${height - padding.bottom + 20})`}>
+            <line x1="0" y1="-20" x2="0" y2="-10" stroke="#553a34" />
+            <text textAnchor="middle" fill="#877369" className="font-bold tracking-tight uppercase text-[11px]">{tick.label}</text>
           </g>
         ))}
 
         {yTicks.map((tick, i) => (
-          <g key={`tick-y-${i}`} transform={`translate(${padding.left - 10}, ${tick.pos})`}>
-            <line x1="10" y1="0" x2="5" y2="0" stroke="#553a34" />
-            <text textAnchor="end" alignmentBaseline="middle" fill="#877369" className="font-bold tracking-tight uppercase">{tick.label}</text>
+          <g key={`tick-y-${i}`} transform={`translate(${padding.left - 15}, ${tick.pos})`}>
+            <line x1="15" y1="0" x2="5" y2="0" stroke="#553a34" />
+            <text textAnchor="end" alignmentBaseline="middle" fill="#877369" className="font-bold tracking-tight uppercase text-[11px]">{tick.label}</text>
           </g>
         ))}
 
         {/* Axis Titles - Editorial Captions */}
-        <text x={(width - padding.left - padding.right) / 2 + padding.left} y={height - 10} textAnchor="middle" fill="#553a34" className="font-bold uppercase tracking-[0.2em] text-[11px]">
+        <text x={(width - padding.left - padding.right) / 2 + padding.left} y={height - 5} textAnchor="middle" fill="#553a34" className="font-bold uppercase tracking-[0.2em] text-[13px]">
           {xAxisLabel}
         </text>
-        <text transform={`rotate(-90) translate(${- (height - padding.top - padding.bottom) / 2 - padding.top}, 25)`} textAnchor="middle" fill="#553a34" className="font-bold uppercase tracking-[0.2em] text-[11px]">
+        <text transform={`rotate(-90) translate(${- (height - padding.top - padding.bottom) / 2 - padding.top}, 20)`} textAnchor="middle" fill="#553a34" className="font-bold uppercase tracking-[0.2em] text-[13px]">
           {yAxisLabel}
         </text>
 
@@ -153,10 +180,10 @@ const ScatterPlot = ({ data, xKey, yKey, xAxisLabel, yAxisLabel, onNodeClick, ac
 
               {/* Label - Archival Tag Style */}
               <text
-                x="14"
-                y="4"
+                x="16"
+                y="5"
                 fill={isActive ? "#553a34" : "#877369"}
-                className={`font-bold transition-opacity text-[9px] uppercase tracking-wide ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
+                className={`font-bold transition-opacity text-[12px] uppercase tracking-wide ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}
               >
                 {d.name || d.title}
               </text>

@@ -26,9 +26,9 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
           <span className="text-[10px] text-[#877369] font-bold uppercase tracking-[0.2em] block mb-1">
             {selectedNode.type === 'plant' ? 'Assembly Node' : 'Archived Supplier'}
           </span>
-          <h2 className="font-bold text-xl leading-tight newsreader">{selectedNode.data.label}</h2>
+          <h2 className="font-bold text-2xl leading-tight tracking-tighter uppercase">{selectedNode.data.label}</h2>
         </div>
-        <button onClick={onClose} className="p-1 hover:bg-[#dac2b6] rounded-full transition-colors text-[#877369]">
+        <button onClick={onClose} className="p-2 hover:bg-[#dac2b6] rounded-full transition-colors text-[#877369]">
           <X size={20} />
         </button>
       </div>
@@ -36,17 +36,17 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
       <div className="p-6 space-y-6 overflow-y-auto flex-1 custom-scrollbar">
         {/* Node Stats */}
         <div className="grid grid-cols-3 gap-4 text-sm">
-          <div className="bg-[#fcf9f4] p-3 border border-[#dac2b6] border-opacity-40 rounded-sm">
-            <div className="text-[9px] text-[#877369] font-bold uppercase mb-1">Impact</div>
-            <div className="font-bold newsreader">{selectedNode.data.materialIndex || 0}x</div>
+          <div className="bg-[#fcf9f4] p-4 border border-[#dac2b6] border-opacity-40 rounded-sm">
+            <div className="text-[10px] text-[#877369] font-bold uppercase mb-1.5 tracking-widest">Impact</div>
+            <div className="font-bold text-lg tracking-tighter">{selectedNode.data.materialIndex || 0}x</div>
           </div>
-          <div className="bg-[#fcf9f4] p-3 border border-[#dac2b6] border-opacity-40 rounded-sm">
-            <div className="text-[9px] text-[#877369] font-bold uppercase mb-1">Tier</div>
-            <div className="font-bold">T{selectedNode.data.tier_level}</div>
+          <div className="bg-[#fcf9f4] p-4 border border-[#dac2b6] border-opacity-40 rounded-sm">
+            <div className="text-[10px] text-[#877369] font-bold uppercase mb-1.5 tracking-widest">Tier</div>
+            <div className="font-bold text-lg tracking-tighter">T{selectedNode.data.tier_level}</div>
           </div>
-          <div className="bg-[#fcf9f4] p-3 border border-[#dac2b6] border-opacity-40 rounded-sm">
-            <div className="text-[9px] text-[#877369] font-bold uppercase mb-1">Origin</div>
-            <div className="font-bold text-[#974726]">{selectedNode.data.country_code || 'NA'}</div>
+          <div className="bg-[#fcf9f4] p-4 border border-[#dac2b6] border-opacity-40 rounded-sm">
+            <div className="text-[10px] text-[#877369] font-bold uppercase mb-1.5 tracking-widest">Origin</div>
+            <div className="font-bold text-lg tracking-tighter text-[#974726]">{selectedNode.data.country_code || 'NA'}</div>
           </div>
         </div>
 
