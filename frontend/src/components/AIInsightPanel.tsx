@@ -1,5 +1,6 @@
-import React from 'react';
-import { Sparkles, Lightbulb, TrendingUp, TrendingDown, AlertCircle, Zap } from 'lucide-react';
+import React, { useState } from 'react';
+import { Sparkles, Lightbulb, TrendingUp, TrendingDown, AlertCircle, Zap, Loader2 } from 'lucide-react';
+import type { AIRecommendation } from './AICommandBar';
 
 export interface ImpactSummary {
   bullets: string[];
@@ -11,15 +12,21 @@ export interface ImpactSummary {
 interface AIInsightPanelProps {
   aiResponse: string;
   impactSummary: ImpactSummary | null;
-  recommendations: string[];
+  recommendations: AIRecommendation[];
+  isSuggesting?: boolean;
+  onSuggestionClick?: (suggestion: string) => void;
 }
 
 export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
   aiResponse,
   impactSummary,
   recommendations,
+  isSuggesting,
+  onSuggestionClick
 }) => {
-  if (!aiResponse && !impactSummary && recommendations.length === 0) return null;
+  const [expandedRecIndex, setExpandedRecIndex] = useState<number | null>(null);
+
+  if (!aiResponse && !impactSummary && recommendations.length === 0 && !isSuggesting) return null;
 
   const isPositiveDelta = impactSummary && impactSummary.delta > 0;
 
@@ -48,7 +55,7 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
             : 'bg-emerald-500/10 border-emerald-500/20'
             }`}>
             <div className="flex flex-col">
-              <span className="text-[9px] text-slate-500 uppercase font-bold">Policy Liability Δ</span>
+              <span className="text-[9px] text-slate-500 uppercase font-bold">Estimated Tax Impact</span>
               <span className={`text-base font-mono font-bold ${isPositiveDelta ? 'text-red-400' : 'text-emerald-400'}`}>
                 {impactSummary.delta >= 0 ? '+' : ''}₹{impactSummary.delta.toLocaleString()}
               </span>
@@ -87,20 +94,75 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
       )}
 
       {/* Suggested Actions */}
-      {recommendations.length > 0 && (
+      {(recommendations.length > 0 || isSuggesting) && (
         <div className="p-3">
           <div className="flex items-center gap-1.5 mb-2">
             <Lightbulb size={12} className="text-yellow-400" />
             <span className="text-[9px] uppercase font-bold text-slate-500 tracking-widest">Suggested Actions</span>
+            {isSuggesting && <Loader2 size={10} className="animate-spin text-slate-500 ml-auto" />}
           </div>
-          <div className="space-y-1.5">
-            {recommendations.map((rec, i) => (
-              <div key={i} className="flex gap-2 items-start bg-slate-800/60 border border-slate-700/40 rounded-lg p-2 text-[10px] text-slate-300 leading-snug">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shrink-0" />
-                {rec}
-              </div>
-            ))}
-          </div>
+          {isSuggesting && recommendations.length === 0 ? (
+            <div className="space-y-2 animate-pulse mt-3">
+              <div className="h-6 bg-slate-800/80 rounded" />
+              <div className="h-6 bg-slate-800/80 rounded w-5/6" />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {recommendations.map((rec, i) => {
+                const isExpanded = expandedRecIndex === i;
+                return (
+                  <div key={i} className="flex flex-col bg-slate-800/60 border border-slate-700/40 rounded-lg overflow-hidden transition-all">
+                    <button 
+                      onClick={() => setExpandedRecIndex(isExpanded ? null : i)}
+                      disabled={!onSuggestionClick}
+                      className="w-full text-left flex gap-2 items-center p-2 hover:bg-slate-700/40 cursor-pointer"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+                      <span className="text-[10px] text-slate-300 leading-snug">{rec.action}</span>
+                    </button>
+                    
+                    {isExpanded && (
+                      <div className="p-3 pt-1 border-t border-slate-700/40 bg-slate-800/40">
+                        <p className="text-[10px] text-slate-400 mb-2 italic leading-relaxed">"{rec.reasoning}"</p>
+                        
+                        {rec.metrics && rec.metrics.length > 0 && (
+                          <div className="grid grid-cols-2 gap-1.5 mb-3 mt-2">
+                            {rec.metrics.map((m, mIdx) => (
+                              <div key={mIdx} className="bg-slate-900/60 rounded border border-slate-700/30 p-1.5 flex flex-col items-center justify-center">
+                                <span className="text-[8.5px] text-slate-500 uppercase font-bold text-center leading-tight tracking-wider">{m.label}</span>
+                                <span className={`text-[11px] font-mono font-bold mt-0.5 ${
+                                  m.trend === 'down' ? 'text-emerald-400' :
+                                  m.trend === 'up' ? 'text-red-400' : 'text-slate-300'
+                                }`}>{m.trend === 'down' ? '↓' : m.trend === 'up' ? '↑' : ''} {m.value}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => { setExpandedRecIndex(null); }}
+                            className="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-[9px] text-slate-300 font-bold"
+                          >
+                            Cancel
+                          </button>
+                          <button 
+                            onClick={() => {
+                               setExpandedRecIndex(null);
+                               if (onSuggestionClick) onSuggestionClick(rec.action);
+                            }}
+                            className="px-2 py-1 bg-blue-600 hover:bg-blue-500 rounded text-[9px] text-white font-bold"
+                          >
+                            Apply
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

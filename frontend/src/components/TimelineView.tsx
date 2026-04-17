@@ -7,6 +7,10 @@ export interface Snapshot {
   nodes: any[];
   edges: any[];
   countryMultipliers: Record<string, number>;
+  aiResponse?: string;
+  aiRecommendations?: any[];
+  impactSummary?: any;
+  changeSummary?: string | null;
 }
 
 interface TimelineViewProps {

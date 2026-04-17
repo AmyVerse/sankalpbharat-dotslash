@@ -20,7 +20,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
   if (!selectedNode) return null;
 
   return (
-    <div className="absolute top-20 left-4 w-96 bg-slate-900/90 border border-slate-700/50 backdrop-blur-md rounded-xl p-0 shadow-2xl z-10 text-white font-sans overflow-hidden animate-in slide-in-from-left-4 fade-in duration-200">
+    <div className="absolute bottom-24 left-4 w-80 max-h-[calc(100vh-200px)] bg-slate-900/95 border border-slate-700/50 backdrop-blur-md rounded-xl p-0 shadow-2xl z-30 text-white font-sans overflow-hidden flex flex-col">
       <div className="flex items-center justify-between bg-slate-800/80 p-4 border-b border-slate-700">
         <div>
           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest block mb-1">
@@ -33,7 +33,7 @@ export const InspectorPanel: React.FC<InspectorPanelProps> = ({
         </button>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-4 space-y-4 overflow-y-auto flex-1">
         {/* Node Stats */}
         <div className="grid grid-cols-3 gap-3 text-sm">
           <div className="bg-slate-800/50 p-3 rounded-lg border border-slate-700">

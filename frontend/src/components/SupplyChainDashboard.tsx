@@ -3,6 +3,7 @@ import ReactFlow, { Background, Controls, useNodesState, useEdgesState } from 'r
 import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import dagre from 'dagre';
+import { GoogleGenAI, Type } from '@google/genai';
 
 import supplyData from '../mock_data/supply.json';
 import alternativesData from '../mock_data/alternatives.json';
@@ -10,9 +11,11 @@ import { PlantNode, SupplierNode } from './GraphNodes';
 import { PolicyManager } from './PolicyManager';
 import { InspectorPanel } from './InspectorPanel';
 import { AICommandBar } from './AICommandBar';
-import type { AICommandResult } from './AICommandBar';
+import type { AICommandResult, AIRecommendation } from './AICommandBar';
 import { TimelineView, type Snapshot } from './TimelineView';
 import { AIInsightPanel, type ImpactSummary } from './AIInsightPanel';
+
+const PROACTIVE_SUGGESTION_CACHE = new Map<string, AIRecommendation[]>();
 
 const nodeTypes = { plant: PlantNode, supplier: SupplierNode };
 
@@ -76,26 +79,151 @@ export default function SupplyChainDashboard() {
 
   const [carbonTaxRate] = useState(1500);
   const [countryMultipliers, setCountryMultipliers] = useState<Record<string, number>>({
-    'EU': 1.0, 'CN': 1.5, 'US': 1.0, 'CL': 1.0, 'TW': 1.0, 'BR': 1.0, 'AU': 1.0, 'CA': 1.0
+    // International
+    'CN': 1.0, 'KR': 1.0, 'EU': 1.0, 'US': 1.0, 'AU': 1.0,
+    // Indian States (for GST/interstate simulation)
+    'IN-MH': 1.0, 'IN-UP': 1.0, 'IN-GJ': 1.0, 'IN-MP': 1.0,
+    'IN-TN': 1.0, 'IN-RJ': 1.0, 'IN-KA': 1.0, 'IN-JH': 1.0,
+    'IN-AP': 1.0, 'IN-HR': 1.0,
   });
 
   // AI suggestions & impact state
   const [aiResponse, setAiResponse] = useState('');
-  const [aiRecommendations, setAiRecommendations] = useState<string[]>([]);
+  const [aiRecommendations, setAiRecommendations] = useState<AIRecommendation[]>([]);
   const [impactSummary, setImpactSummary] = useState<ImpactSummary | null>(null);
   const [changeSummary, setChangeSummary] = useState<string | null>(null);
+  const [isSuggesting, setIsSuggesting] = useState(false);
+  const [autoRunCommand, setAutoRunCommand] = useState<string>("");
+  const [showAlternatives, setShowAlternatives] = useState(false);
 
   // Timeline States
   const [timeline, setTimeline] = useState<Snapshot[]>([]);
   const [currentIndex, setCurrentIndex] = useState(-1);
 
-  const pushToTimeline = (desc: string, currentNodes: Node[], currentEdges: Edge[], currentMults: Record<string, number>) => {
+  const fetchSuggestions = async () => {
+    if (isSuggesting || nodes.length === 0) return;
+    setIsSuggesting(true);
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey || apiKey === "INSERT_YOUR_GEMINI_API_KEY_HERE") return;
+
+      const activeSuppliers = nodes.filter((n: any) => n.type === 'supplier').map((n: any) => `{id: "${n.id}", label: "${n.data.label}", emis: ${n.data.materialIndex}, cost: ${n.data.base_cost}}`).join(' | ');
+
+      if (PROACTIVE_SUGGESTION_CACHE.has(activeSuppliers)) {
+        const cached = PROACTIVE_SUGGESTION_CACHE.get(activeSuppliers)!;
+        setAiRecommendations(cached);
+        setIsSuggesting(false);
+        return;
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
+
+      const condensedAlts = Object.entries(alternativesData).map(([target, alts]: any) =>
+        `Alternatives for ${target} -> [${alts.map((a: any) => `{id: "${a.id}", label: "${a.data.label}", emis: ${a.data.materialIndex}, dist_km: ${a.edgeData?.logistics?.distance_km}, cost: ${a.data.base_cost}}`).join(', ')}]`
+      ).join('; ');
+
+      const prompt = `Based on these active suppliers: ${activeSuppliers}, and the Available Alternatives mapping: ${condensedAlts}, suggest 2 supplier swaps I should make. Just return a JSON array of objects. IMPORTANT RULES:
+      1. Each object must have an 'action' string (strictly formatted, e.g. "Swap [Active Supplier] for [Alternative]"). DO NOT suggest tariffs.
+      2. The 'reasoning' string MUST explicitly highlight the green tradeoff: if upfront Base Cost is higher but emissions are lower, clearly explain that 'Although the raw material premium increases base costs by X, the massive drop in Carbon Tax liability leads to an overall Net Total Cost reduction.'
+      3. Instead of quoting figures in the reasoning, extract exactly 3 hard metrics into the 'metrics' array: one for "Est. Tax Savings", one for "Upfront Premium" (the base cost increase), and one for "Net Total Cost". Use 'label', 'value', and 'trend' (use 'up' for increase, 'down' for decrease). Make sure you calculate the exact difference.`;
+
+      const responseSchema = {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            action: { type: Type.STRING },
+            reasoning: { type: Type.STRING },
+            metrics: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  label: { type: Type.STRING },
+                  value: { type: Type.STRING },
+                  trend: { type: Type.STRING }
+                }
+              }
+            }
+          }
+        }
+      };
+
+      let response: any;
+      let retries = 5;
+
+      while (retries >= 0) {
+        try {
+          response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: prompt,
+            config: {
+              responseMimeType: 'application/json',
+              responseSchema: responseSchema
+            }
+          });
+          break; // success
+        } catch (err: any) {
+          if (retries === 0 || !err.message?.includes('503')) throw err;
+          console.warn(`Gemini 503 High Demand. Retrying in 2s... (${retries} attempts left)`);
+          await new Promise(r => setTimeout(r, 2000));
+          retries--;
+        }
+      }
+
+      if (response.text) {
+        const recs = JSON.parse(response.text);
+
+        // Cache the recommendations
+        PROACTIVE_SUGGESTION_CACHE.set(activeSuppliers, recs);
+
+        setAiRecommendations(recs);
+
+        setTimeline(prev => {
+          const newTimeline = [...prev];
+          if (newTimeline[currentIndex]) {
+            newTimeline[currentIndex] = {
+              ...newTimeline[currentIndex],
+              aiRecommendations: recs
+            };
+          }
+          return newTimeline;
+        });
+      }
+    } catch (e) {
+      console.error("Auto-suggest error:", e);
+    } finally {
+      setIsSuggesting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (nodes.length > 0 && timeline.length > 0) {
+      if (aiRecommendations.length === 0) {
+        fetchSuggestions();
+      }
+    }
+  }, [currentIndex, nodes.length, timeline.length, aiRecommendations.length]);
+
+  const pushToTimeline = (
+    desc: string,
+    currentNodes: Node[],
+    currentEdges: Edge[],
+    currentMults: Record<string, number>,
+    extra?: {
+      aiResponse?: string;
+      aiRecommendations?: any[];
+      impactSummary?: ImpactSummary | null;
+      changeSummary?: string | null;
+    }
+  ) => {
     const snapshot: Snapshot = {
       timestamp: new Date().toLocaleTimeString(),
       description: desc,
       nodes: JSON.parse(JSON.stringify(currentNodes)),
       edges: JSON.parse(JSON.stringify(currentEdges)),
-      countryMultipliers: { ...currentMults }
+      countryMultipliers: { ...currentMults },
+      ...(extra || {})
     };
 
     setTimeline(prev => {
@@ -109,20 +237,43 @@ export default function SupplyChainDashboard() {
   const restoreSnapshot = (idx: number) => {
     const snap = timeline[idx];
     if (snap) {
-       setNodes(JSON.parse(JSON.stringify(snap.nodes)));
-       setEdges(JSON.parse(JSON.stringify(snap.edges)));
-       setCountryMultipliers({ ...snap.countryMultipliers });
-       setCurrentIndex(idx);
+      setNodes(JSON.parse(JSON.stringify(snap.nodes)));
+      setEdges(JSON.parse(JSON.stringify(snap.edges)));
+      setCountryMultipliers({ ...snap.countryMultipliers });
+      setAiResponse(snap.aiResponse || '');
+      setAiRecommendations(snap.aiRecommendations || []);
+      setImpactSummary(snap.impactSummary || null);
+      setChangeSummary(snap.changeSummary || null);
+      setCurrentIndex(idx);
     }
   };
 
   const handleAICommand = (result: AICommandResult) => {
+    if (result.revert_timeline) {
+      if (currentIndex > 0) {
+        restoreSnapshot(currentIndex - 1);
+      }
+      return;
+    }
+
+    if (result.node_swap && result.node_swap.target_node_id && result.node_swap.alternative_node_id) {
+      const targetId = result.node_swap.target_node_id;
+      const altId = result.node_swap.alternative_node_id;
+      const alternativeList = (alternativesData as any)[targetId] || [];
+      const alternative = alternativeList.find((a: any) => a.id === altId);
+
+      if (alternative) {
+        handleSwap(targetId, alternative, result.ai_response, result.prompt);
+        return;
+      }
+    }
+
     const beforeLiability = computeLiability(edges, nodes, countryMultipliers, carbonTaxRate);
 
     const nextMults = { ...countryMultipliers };
     result.tax_updates?.forEach(update => {
       if (nextMults[update.country_code] !== undefined) {
-         nextMults[update.country_code] = update.multiplier;
+        nextMults[update.country_code] = update.multiplier;
       }
     });
 
@@ -153,7 +304,12 @@ export default function SupplyChainDashboard() {
     setAiRecommendations(result.recommended_actions || []);
     setImpactSummary({ bullets, delta, before: beforeLiability, after: afterLiability });
     setChangeSummary(result.ai_response || null);
-    pushToTimeline(result.ai_response || 'AI Policy Execution', nodes, edges, nextMults);
+    pushToTimeline(result.prompt || 'AI Policy Execution', nodes, edges, nextMults, {
+      aiResponse: result.ai_response || '',
+      aiRecommendations: result.recommended_actions || [],
+      impactSummary: { bullets, delta, before: beforeLiability, after: afterLiability },
+      changeSummary: result.ai_response || null
+    });
   };
 
   // Initialize Layout
@@ -164,16 +320,25 @@ export default function SupplyChainDashboard() {
     );
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
-    
+
     if (timeline.length === 0) {
-       setCurrentIndex(0);
-       setTimeline([{
-          timestamp: new Date().toLocaleTimeString(),
-          description: "Initial Baseline State",
-          nodes: JSON.parse(JSON.stringify(layoutedNodes)),
-          edges: JSON.parse(JSON.stringify(layoutedEdges)),
-          countryMultipliers: { 'EU': 1.0, 'CN': 1.5, 'US': 1.0, 'CL': 1.0, 'TW': 1.0, 'BR': 1.0, 'AU': 1.0, 'CA': 1.0 }
-       }]);
+      setCurrentIndex(0);
+      setTimeline([{
+        timestamp: new Date().toLocaleTimeString(),
+        description: "Initial Baseline State",
+        nodes: JSON.parse(JSON.stringify(layoutedNodes)),
+        edges: JSON.parse(JSON.stringify(layoutedEdges)),
+        countryMultipliers: {
+          'CN': 1.0, 'KR': 1.0, 'EU': 1.0, 'US': 1.0, 'AU': 1.0,
+          'IN-MH': 1.0, 'IN-UP': 1.0, 'IN-GJ': 1.0, 'IN-MP': 1.0,
+          'IN-TN': 1.0, 'IN-RJ': 1.0, 'IN-KA': 1.0, 'IN-JH': 1.0,
+          'IN-AP': 1.0, 'IN-HR': 1.0,
+        },
+        aiResponse: '',
+        aiRecommendations: [],
+        impactSummary: null,
+        changeSummary: null
+      }]);
     }
   }, []);
 
@@ -181,11 +346,13 @@ export default function SupplyChainDashboard() {
   // And dynamic hotspot calculation
   const { updatedNodes, totalNetworkEmissions, dynamicShadowPL } = useMemo(() => {
     if (nodes.length === 0) return { updatedNodes: [], totalNetworkEmissions: 0, dynamicShadowPL: 0 };
-    
+    // IMPORTANT: deep-copy .data so mutations below don't bleed into the original nodes
+    // state reference (which would make the useEffect JSON comparison see no diff)
+    const newNodes = [...nodes].map(n => ({ ...n, data: { ...n.data } }));
+
     let totalEms = 0;
     let totalTaxLiability = 0;
-    const newNodes = [...nodes].map(n => ({...n}));
-    
+
     const nodeAccumulations: Record<string, number> = {};
     const nodeHotspotChecks: Record<string, boolean> = {};
 
@@ -196,14 +363,14 @@ export default function SupplyChainDashboard() {
         const qty = logistics.weight_ton;
         const matIndex = sourceNode.data.materialIndex;
         const transitEms = logistics.weight_ton * logistics.distance_km * logistics.emission_factor;
-        
+
         const edgeEmission = (qty * matIndex) + transitEms;
         totalEms += edgeEmission;
 
         nodeAccumulations[edge.target] = (nodeAccumulations[edge.target] || 0) + edgeEmission;
-        
+
         if (edgeEmission > 5000) {
-           nodeHotspotChecks[edge.source] = true;
+          nodeHotspotChecks[edge.source] = true;
         }
 
         // --- Dynamic Tax & Policy Logic per Edge ---
@@ -211,7 +378,7 @@ export default function SupplyChainDashboard() {
         const sourceCountry = sourceNode.data.country_code || 'NA';
 
         if (countryMultipliers[sourceCountry]) {
-           edgeTaxMultiplier *= countryMultipliers[sourceCountry];
+          edgeTaxMultiplier *= countryMultipliers[sourceCountry];
         }
 
         totalTaxLiability += (edgeEmission * carbonTaxRate) * edgeTaxMultiplier;
@@ -225,7 +392,7 @@ export default function SupplyChainDashboard() {
       if (node.type === 'supplier') {
         const isHotspot = nodeHotspotChecks[node.id] || node.data.score < 30;
         node.data.isHotspot = isHotspot;
-        
+
         const countryCode = node.data.country_code || 'NA';
         node.data.isTaxed = countryMultipliers[countryCode] > 1.0;
         node.data.isSubsidized = countryMultipliers[countryCode] < 1.0;
@@ -239,9 +406,45 @@ export default function SupplyChainDashboard() {
   // Update the actual node state visually with the computed hotspots
   useEffect(() => {
     if (updatedNodes.length > 0 && JSON.stringify(updatedNodes) !== JSON.stringify(nodes)) {
-       setNodes(updatedNodes);
+      setNodes(updatedNodes);
     }
   }, [updatedNodes]);
+
+  const { visibleNodes, visibleEdges } = useMemo(() => {
+    let outNodes = [...nodes];
+    let outEdges = [...edges];
+
+    if (showAlternatives) {
+      nodes.forEach(n => {
+        const alts = (alternativesData as any)[n.id];
+        if (alts && alts.length > 0) {
+          alts.forEach((alt: any, i: number) => {
+            outNodes.push({
+              id: alt.id,
+              type: 'supplier',
+              position: { x: n.position.x + 60, y: n.position.y + 140 * (i + 1) },
+              data: { ...alt.data, isAlternativeNode: true },
+              width: 220,
+              height: 120,
+              zIndex: -1,
+              draggable: false
+            });
+            const parentEdge = edges.find(e => e.source === n.id);
+            if (parentEdge) {
+              outEdges.push({
+                id: `edge-${alt.id}-${parentEdge.target}`,
+                source: alt.id,
+                target: parentEdge.target,
+                animated: true,
+                style: { strokeDasharray: '5,5', stroke: '#cbd5e1', opacity: 0.3 }
+              });
+            }
+          });
+        }
+      });
+    }
+    return { visibleNodes: outNodes, visibleEdges: outEdges };
+  }, [nodes, edges, showAlternatives]);
 
   // Use the new dynamic property
   const shadowPL = dynamicShadowPL;
@@ -255,36 +458,65 @@ export default function SupplyChainDashboard() {
     setSelectedNode(node);
   }, []);
 
-  const handleSwap = (targetNodeId: string, alternative: any) => {
+  const handleSwap = (targetNodeId: string, alternative: any, customAiResponse?: string, customTimelineDesc?: string) => {
+    const targetNode = nodes.find(n => n.id === targetNodeId);
+    const beforeLiability = computeLiability(edges, nodes, countryMultipliers, carbonTaxRate);
+
     let swappedNodes = nodes.map(n => {
       if (n.id === targetNodeId) {
-        return {
-          ...n,
-          id: alternative.id, 
-          data: { ...n.data, ...alternative.data }
-        };
+        return { ...n, id: alternative.id, data: { ...n.data, ...alternative.data } };
       }
       return n;
     });
 
+    // Color edge based on whether it's actually an improvement
+    const isImprovement = (alternative.data.materialIndex || 0) < (targetNode?.data.materialIndex || 0)
+      || (alternative.data.score || 0) > (targetNode?.data.score || 0);
+    const edgeColor = isImprovement ? '#10b981' : '#f97316'; // green if better, orange if worse
+
     let swappedEdges = edges.map(e => {
       if (e.source === targetNodeId) {
-         return {
-           ...e,
-           source: alternative.id,
-           data: alternative.edgeData,
-           style: { stroke: '#10b981', strokeWidth: 2 } 
-         };
+        return {
+          ...e,
+          source: alternative.id,
+          data: alternative.edgeData,
+          style: { stroke: edgeColor, strokeWidth: 2 }
+        };
       }
       return e;
     });
 
+    const afterLiability = computeLiability(swappedEdges, swappedNodes, countryMultipliers, carbonTaxRate);
+    const delta = afterLiability - beforeLiability;
+
+    const currCost = (targetNode?.data.base_cost || 0);
+    const altCost = (alternative.data.base_cost || 0);
+    const costDelta = altCost - currCost;
+    const emDelta = (alternative.data.materialIndex || 0) - (targetNode?.data.materialIndex || 0);
+
+    const swapBullets: string[] = [
+      `Replaced ${targetNode?.data.label || targetNodeId} (${targetNode?.data.country_code || '?'}) with ${alternative.data.label} (${alternative.data.country_code || '?'})`,
+      `Supplier cost delta: ${costDelta >= 0 ? '+' : ''}$${costDelta}/unit`,
+      `Emission index delta: ${emDelta >= 0 ? '+' : ''}${emDelta}x material index`,
+      `Policy liability changed by ₹${Math.abs(delta).toLocaleString()} (${delta >= 0 ? '↑ increase' : '↓ decrease'})`,
+    ];
+
+    setAiResponse(customAiResponse || `Swapped to ${alternative.data.label}`);
+    setAiRecommendations([]);
+    setImpactSummary({ bullets: swapBullets, delta, before: beforeLiability, after: afterLiability });
+    setChangeSummary(`Supplier swapped: ${targetNode?.data.label} → ${alternative.data.label}`);
+
     const layouted = getLayoutedElements(swappedNodes, swappedEdges);
-    pushToTimeline(`Swapped supplier for ${alternative.data.label}`, layouted.nodes, layouted.edges, countryMultipliers);
-    
+    pushToTimeline(customTimelineDesc || customAiResponse || `Swapped ${targetNode?.data.label} → ${alternative.data.label}`, layouted.nodes, layouted.edges, countryMultipliers, {
+      aiResponse: customAiResponse || `Swapped to ${alternative.data.label}`,
+      aiRecommendations: [],
+      impactSummary: { bullets: swapBullets, delta, before: beforeLiability, after: afterLiability },
+      changeSummary: `Supplier swapped: ${targetNode?.data.label} → ${alternative.data.label}`
+    });
+
     setNodes(layouted.nodes);
     setEdges(layouted.edges);
-    setSelectedNode(null); 
+    setSelectedNode(null);
   };
 
 
@@ -299,6 +531,17 @@ export default function SupplyChainDashboard() {
         </div>
 
         <div className="flex gap-3 items-center">
+          {/* Toggle for Alternatives */}
+          <div className="flex items-center gap-2 mr-2 bg-slate-800/40 px-3 py-1.5 rounded-lg border border-white/5">
+            <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">Show Alternatives</span>
+            <button
+              onClick={() => setShowAlternatives(!showAlternatives)}
+              className={`w-8 h-4 rounded-full transition-colors relative flex items-center p-0.5 ${showAlternatives ? 'bg-blue-500' : 'bg-slate-700'}`}
+            >
+              <div className={`w-3 h-3 bg-white rounded-full shadow-sm transition-all ${showAlternatives ? 'translate-x-4' : 'translate-x-0'}`} />
+            </button>
+          </div>
+
           {/* Change Summary Box */}
           {changeSummary && (
             <div className="max-w-xs bg-purple-900/30 border border-purple-500/30 px-3 py-1.5 rounded-lg">
@@ -311,25 +554,27 @@ export default function SupplyChainDashboard() {
             <p className="text-sm font-mono text-slate-300 font-bold">{totalNetworkEmissions.toLocaleString(undefined, { maximumFractionDigits: 0 })} tons CO2e</p>
           </div>
           <div className="text-right bg-red-500/10 px-4 py-1.5 rounded-lg border border-red-500/20">
-            <p className="text-[9px] text-red-500/70 uppercase font-black">Projected Policy Liability</p>
+            <p className="text-[9px] text-red-500/70 uppercase font-black">Estimated Carbon Tax</p>
             <p className="text-xl font-mono text-red-400 font-bold">₹{shadowPL.toLocaleString()}</p>
           </div>
         </div>
       </div>
 
       <div className="flex-grow relative">
-        <TimelineView 
-           timeline={timeline}
-           currentIndex={currentIndex}
-           onRestore={restoreSnapshot}
+        <TimelineView
+          timeline={timeline}
+          currentIndex={currentIndex}
+          onRestore={restoreSnapshot}
         />
         <AIInsightPanel
           aiResponse={aiResponse}
           impactSummary={impactSummary}
           recommendations={aiRecommendations}
+          isSuggesting={isSuggesting}
+          onSuggestionClick={setAutoRunCommand}
         />
-        
-        <InspectorPanel 
+
+        <InspectorPanel
           selectedNode={selectedNode}
           currentEdge={currentEdge}
           alternatives={selectedNode ? (alternativesData as any)[selectedNode.id] : []}
@@ -337,10 +582,10 @@ export default function SupplyChainDashboard() {
           onSwap={handleSwap}
         />
 
-        <ReactFlow 
-          nodes={nodes} 
-          edges={edges} 
-          nodeTypes={nodeTypes} 
+        <ReactFlow
+          nodes={visibleNodes}
+          edges={visibleEdges}
+          nodeTypes={nodeTypes}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onNodeClick={onNodeClick}
@@ -354,7 +599,13 @@ export default function SupplyChainDashboard() {
         </ReactFlow>
 
         {/* The NLP AI Co-Pilot Input */}
-        <AICommandBar onCommand={handleAICommand} />
+        <AICommandBar
+          onCommand={handleAICommand}
+          contextNodes={nodes}
+          contextAlternatives={alternativesData}
+          autoRunPrompt={autoRunCommand}
+          onAutoRunClear={() => setAutoRunCommand("")}
+        />
 
       </div>
     </div>

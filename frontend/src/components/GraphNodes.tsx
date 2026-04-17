@@ -1,31 +1,21 @@
-import { Factory, Warehouse, AlertTriangle, Leaf, Zap } from 'lucide-react';
+import { Factory, Warehouse, AlertTriangle, Leaf } from 'lucide-react';
 import { Handle, Position } from 'reactflow';
 
 export const PlantNode = ({ data, selected }: any) => {
-  const edgeEmissions = data.accumulatedEmissions || 0;
-  
   return (
-    <div className={`px-4 py-3 shadow-2xl rounded-xl bg-slate-900 border-2 transition-all duration-300 w-56 ${selected ? 'border-blue-400 ring-4 ring-blue-500/20' : 'border-blue-500/50 hover:border-blue-400'}`}>
-      <div className="flex items-center gap-2 border-b border-slate-700/50 pb-2 mb-2">
-        <div className="bg-blue-500/20 p-1.5 rounded-md">
-          <Factory size={18} className="text-blue-400" />
+    <div className={`px-3 py-2 shadow-xl rounded-lg bg-slate-900 border-2 transition-all duration-300 w-44 cursor-pointer
+      ${selected ? 'border-blue-400 ring-2 ring-blue-500/30' : 'border-blue-500/40 hover:border-blue-400/80'}`}
+    >
+      <div className="flex items-center gap-1.5">
+        <div className="bg-blue-500/20 p-1 rounded shrink-0">
+          <Factory size={12} className="text-blue-400" />
         </div>
-        <div>
-          <span className="font-black text-sm uppercase tracking-wider text-white block leading-tight">{data.label}</span>
-          <span className="text-[10px] text-slate-400 uppercase tracking-widest">{data.location}</span>
+        <div className="min-w-0">
+          <div className="font-bold text-[11px] text-white truncate leading-tight">{data.label}</div>
+          <div className="text-[9px] text-slate-400 truncate">{data.location}</div>
         </div>
       </div>
-      
-      <div className="mt-3 bg-slate-800/80 p-2 rounded border border-slate-700 flex justify-between items-center group relative overflow-hidden">
-        <div className="relative z-10">
-          <div className="text-[10px] text-slate-400 uppercase font-bold tracking-wider mb-0.5">Total Payload CO2e</div>
-          <div className="font-mono text-lg font-bold text-slate-200">
-            {edgeEmissions.toLocaleString(undefined, { maximumFractionDigits: 1 })} <span className="text-xs text-slate-500">kg</span>
-          </div>
-        </div>
-        <Zap size={24} className="text-blue-500/20 absolute right-2 bottom-1 z-0 group-hover:scale-110 transition-transform" />
-      </div>
-      <Handle type="target" position={Position.Left} className="w-3 h-3 bg-blue-500 -ml-1 border-2 border-slate-900" />
+      <Handle type="target" position={Position.Left} className="w-2 h-2 bg-blue-500 border-2 border-slate-900" />
     </div>
   );
 };
@@ -35,42 +25,46 @@ export const SupplierNode = ({ data, selected }: any) => {
   const isTaxed = data.isTaxed;
   const isSubsidized = data.isSubsidized;
   const isRecycled = data.recycled;
-  
-  let borderClass = 'border-slate-700';
-  if (isHotspot) borderClass = 'border-red-500 ring-4 ring-red-500/20';
-  else if (isTaxed) borderClass = 'border-orange-500 ring-4 ring-orange-500/20';
-  else if (isSubsidized) borderClass = 'border-emerald-500 ring-4 ring-emerald-500/20';
-  else if (selected) borderClass = 'border-blue-400 ring-4 ring-blue-500/20';
+
+  let borderClass = selected
+    ? 'border-blue-400 ring-2 ring-blue-500/20'
+    : 'border-slate-700 hover:border-slate-500';
+  if (data.isAlternativeNode) borderClass = 'border-dashed border-slate-500 opacity-60 hover:opacity-100 hover:border-slate-300';
+  else if (isHotspot) borderClass = 'border-red-500 ring-2 ring-red-500/25';
+  else if (isTaxed) borderClass = 'border-orange-500 ring-2 ring-orange-500/25';
+  else if (isSubsidized) borderClass = 'border-emerald-500 ring-2 ring-emerald-500/25';
+
+  const iconColor = isHotspot
+    ? 'text-red-400'
+    : isTaxed
+      ? 'text-orange-400'
+      : isSubsidized
+        ? 'text-emerald-400'
+        : 'text-slate-400';
+
+  const tierColor = data.tier_level === 1
+    ? 'bg-blue-500/10 text-blue-400'
+    : data.tier_level === 2
+      ? 'bg-purple-500/10 text-purple-400'
+      : 'bg-slate-700/50 text-slate-400';
 
   return (
-    <div className={`px-4 py-3 shadow-xl rounded-xl bg-slate-900 border-2 transition-all duration-300 w-52 ${borderClass}`}>
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <div className="flex items-center gap-2">
-          <div className={`p-1.5 rounded-md ${isHotspot ? 'bg-red-500/20' : 'bg-slate-800'}`}>
-            <Warehouse size={16} className={isHotspot ? 'text-red-500' : 'text-slate-400'} />
-          </div>
-          <div>
-            <span className="font-bold text-xs text-white block">{data.label}</span>
-            <span className="text-[9px] text-slate-500 uppercase tracking-wider">Tier {data.tier_level}</span>
-          </div>
+    <div className={`px-3 py-2 shadow-lg rounded-lg bg-slate-900 border-2 transition-all duration-300 w-40 cursor-pointer ${borderClass}`}>
+      <div className="flex items-center gap-1.5">
+        <Warehouse size={12} className={`${iconColor} shrink-0`} />
+        <div className="min-w-0 flex-1">
+          <div className="font-semibold text-[11px] text-white truncate leading-tight">{data.label}</div>
+          <div className="text-[9px] text-slate-400 truncate">{data.location}</div>
         </div>
-        {isHotspot && <AlertTriangle size={16} className="text-red-500 animate-pulse" />}
-        {!isHotspot && isRecycled && <Leaf size={16} className="text-emerald-500" />}
-      </div>
-      
-      <div className="grid grid-cols-2 gap-2 mt-3">
-        <div className="bg-slate-800/50 p-1.5 rounded border border-slate-700 text-center">
-           <div className="text-[9px] text-slate-500 uppercase">Cost/Unit</div>
-           <div className="text-xs font-mono text-white">${data.base_cost}</div>
-        </div>
-        <div className={`p-1.5 rounded border text-center ${isHotspot ? 'bg-red-500/10 border-red-500/30' : 'bg-emerald-500/10 border-emerald-500/30'}`}>
-           <div className={`text-[9px] uppercase ${isHotspot ? 'text-red-400/80' : 'text-emerald-400/80'}`}>Score</div>
-           <div className={`text-xs font-mono font-bold ${isHotspot ? 'text-red-400' : 'text-emerald-400'}`}>{data.score}</div>
+        <div className="flex items-center gap-0.5 shrink-0">
+          {isHotspot && <AlertTriangle size={9} className="text-red-500 animate-pulse" />}
+          {!isHotspot && isRecycled && <Leaf size={9} className="text-emerald-500" />}
+          <span className={`text-[8px] font-bold px-1 rounded ${tierColor}`}>T{data.tier_level}</span>
         </div>
       </div>
 
-      <Handle type="target" position={Position.Left} className="w-2.5 h-2.5 bg-slate-600 border-2 border-slate-900" />
-      <Handle type="source" position={Position.Right} className="w-2.5 h-2.5 bg-slate-600 border-2 border-slate-900" />
+      <Handle type="target" position={Position.Left} className="w-2 h-2 bg-slate-600 border-2 border-slate-900" />
+      <Handle type="source" position={Position.Right} className="w-2 h-2 bg-slate-600 border-2 border-slate-900" />
     </div>
   );
 };

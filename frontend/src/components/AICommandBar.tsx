@@ -2,26 +2,44 @@ import React, { useState } from 'react';
 import { GoogleGenAI, Type } from '@google/genai';
 import { Sparkles, Send, Loader2 } from 'lucide-react';
 
+export interface AIRecommendation {
+  action: string;
+  reasoning: string;
+  metrics?: { label: string; value: string; trend: 'up'|'down'|'neutral' }[];
+}
+
 export interface AICommandResult {
-  tax_updates: { country_code: string; multiplier: number }[];
+  tax_updates?: { country_code: string; multiplier: number }[];
+  node_swap?: { target_node_id: string; alternative_node_id: string } | null;
+  revert_timeline?: boolean;
   ai_response: string;
-  recommended_actions: string[];
+  recommended_actions: AIRecommendation[];
+  prompt?: string;
 }
 
 interface AICommandBarProps {
   onCommand: (result: AICommandResult) => void;
+  contextNodes?: any[];
+  contextAlternatives?: any;
+  autoRunPrompt?: string;
+  onAutoRunClear?: () => void;
 }
 
-export const AICommandBar: React.FC<AICommandBarProps> = ({ onCommand }) => {
+export const AICommandBar: React.FC<AICommandBarProps> = ({ 
+  onCommand, 
+  contextNodes = [], 
+  contextAlternatives = {},
+  autoRunPrompt,
+  onAutoRunClear
+}) => {
   const [prompt, setPrompt] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [aiText, setAiText] = useState("");
-  const [recommendations, setRecommendations] = useState<string[]>([]);
+  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
   const [isOpen, setIsOpen] = useState(true);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!prompt.trim() || isLoading) return;
+  const executeCommand = async (cmdText: string) => {
+    if (!cmdText.trim() || isLoading) return;
 
     setIsLoading(true);
     try {
@@ -47,23 +65,60 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({ onCommand }) => {
               }
             }
           },
+          node_swap: {
+            type: Type.OBJECT,
+            properties: {
+              target_node_id: { type: Type.STRING },
+              alternative_node_id: { type: Type.STRING }
+            }
+          },
+          revert_timeline: {
+            type: Type.BOOLEAN,
+            description: "Set to true if user wants to undo, go back, or revert the last action"
+          },
           ai_response: { type: Type.STRING },
           recommended_actions: {
             type: Type.ARRAY,
-            items: { type: Type.STRING }
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                action: { type: Type.STRING },
+                reasoning: { type: Type.STRING },
+                metrics: {
+                  type: Type.ARRAY,
+                  items: {
+                    type: Type.OBJECT,
+                    properties: {
+                      label: { type: Type.STRING },
+                      value: { type: Type.STRING },
+                      trend: { type: Type.STRING }
+                    }
+                  }
+                }
+              }
+            }
           }
         }
       };
 
+      const activeSuppliers = contextNodes.filter(n => n.type === 'supplier').map(n => `{id: "${n.id}", label: "${n.data.label}"}`).join(', ');
+      
       const systemInstruction = `You are the AI Co-Pilot for a Supply Chain Visualization Dashboard. 
-      The user will give you a natural language command (e.g., "Add a heavy 50% tariff to Chinese imports" or "Tax the US to 2.5x"). 
-      Extract the country_code (e.g. EU, CN, US, CL, TW, BR, AU, CA) and the multiplier (from 0.5 to 2.5, where 1.0 is neutral, >1.0 is tax, <1.0 is subsidy).
-      You must also recommend 1-2 actions based on their decision. For example, if they tax China heavily, recommend swapping Chinese suppliers for Taiwanese or US suppliers.
-      Write a short, friendly response in 'ai_response' confirming what you did.`;
+      The user will give you a natural language command. You can do three things:
+      1. Apply tariffs/subsidies: Extract country_code (e.g. CN, IN-TN) and multiplier (1.0 is neutral, >1.0 is tax, <1.0 is subsidy) into tax_updates.
+      2. Swap a supplier: If they ask to swap a supplier, look at the active suppliers and alternatives, and populate the node_swap object with target_node_id and alternative_node_id.
+      3. Undo/Revert: If they ask to undo, go back, or reverse, set revert_timeline to true.
+      
+      Context data:
+      Active Suppliers: ${activeSuppliers}
+      Available Alternatives: ${JSON.stringify(contextAlternatives)}
+      
+      Write a short, friendly response in 'ai_response' explaining what you did, without sounding like a robot. Speak in first person.
+      Recommend 1 or 2 next actions in 'recommended_actions'. IMPORTANT: 'recommended_actions' strings MUST be strictly formatted commands. Provide a 1-sentence 'reasoning' and extract 2 hard numbers into the 'metrics' array with label, value, and trend ('up' or 'down'). DO NOT ask questions.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: prompt,
+        contents: cmdText,
         config: {
           systemInstruction: systemInstruction,
           responseMimeType: 'application/json',
@@ -73,6 +128,7 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({ onCommand }) => {
 
       if (response.text) {
         const result: AICommandResult = JSON.parse(response.text);
+        result.prompt = cmdText;
         setAiText(result.ai_response);
         setRecommendations(result.recommended_actions || []);
         onCommand(result);
@@ -84,7 +140,20 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({ onCommand }) => {
       setAiText("Error parsing command. Did you use a supported region? " + err?.message);
     } finally {
       setIsLoading(false);
+      if (onAutoRunClear) onAutoRunClear();
     }
+  };
+
+  React.useEffect(() => {
+    if (autoRunPrompt) {
+      setPrompt(autoRunPrompt);
+      executeCommand(autoRunPrompt);
+    }
+  }, [autoRunPrompt]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    executeCommand(prompt);
   };
 
   return (

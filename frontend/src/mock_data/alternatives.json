@@ -1,63 +1,247 @@
 {
-  "S1": [
-    {
-      "id": "A1-1", "type": "supplier",
-      "data": { "label": "Nordic Green Steel", "tier_level": 1, "criticality_level": "High", "score": 98, "materialIndex": 0.2, "base_cost": 800, "recycled": true, "location": "Sweden", "country_code": "EU" },
-      "edgeData": { "label": "Steel Frame", "logistics": { "mode": "Rail", "distance_km": 1200, "weight_ton": 200, "cost": 4500, "emission_factor": 0.05 } }
-    }
-  ],
-  "S2": [
-    {
-      "id": "A2-1", "type": "supplier",
-      "data": { "label": "Taiwan Semiconductor", "tier_level": 1, "criticality_level": "Critical", "score": 75, "materialIndex": 2.2, "base_cost": 300, "recycled": false, "location": "Taiwan", "country_code": "TW" },
-      "edgeData": { "label": "Control Boards", "logistics": { "mode": "Air", "distance_km": 9000, "weight_ton": 50, "cost": 35000, "emission_factor": 0.8 } }
-    },
-    {
-      "id": "A2-2", "type": "supplier",
-      "data": { "label": "Bosch EU Sensors", "tier_level": 1, "criticality_level": "Medium", "score": 90, "materialIndex": 1.5, "base_cost": 550, "recycled": false, "location": "Germany", "country_code": "EU" },
-      "edgeData": { "label": "Control Boards", "logistics": { "mode": "Truck", "distance_km": 300, "weight_ton": 50, "cost": 1000, "emission_factor": 0.15 } }
-    }
-  ],
-  "S3": [
-    {
-      "id": "A3-1", "type": "supplier",
-      "data": { "label": "Euro-Polymer", "tier_level": 1, "criticality_level": "Low", "score": 85, "materialIndex": 1.0, "base_cost": 220, "recycled": true, "location": "France", "country_code": "EU" },
-      "edgeData": { "label": "Interior Plastic", "logistics": { "mode": "Rail", "distance_km": 800, "weight_ton": 100, "cost": 2000, "emission_factor": 0.05 } }
-    }
-  ],
-  "S4": [
-    {
-      "id": "A4-1", "type": "supplier",
-      "data": { "label": "Local Junkyard", "tier_level": 2, "criticality_level": "Low", "score": 70, "materialIndex": 0.8, "base_cost": 150, "recycled": true, "location": "Germany", "country_code": "EU" },
-      "edgeData": { "label": "Scrap Metal", "logistics": { "mode": "Truck", "distance_km": 50, "weight_ton": 150, "cost": 300, "emission_factor": 0.15 } }
-    }
-  ],
-  "S5": [
-    {
-      "id": "A5-1", "type": "supplier",
-      "data": { "label": "Brazilian Iron", "tier_level": 2, "criticality_level": "High", "score": 50, "materialIndex": 2.5, "base_cost": 120, "recycled": false, "location": "Brazil", "country_code": "BR" },
-      "edgeData": { "label": "Pig Iron", "logistics": { "mode": "Ship", "distance_km": 10000, "weight_ton": 200, "cost": 6000, "emission_factor": 0.02 } }
-    }
-  ],
   "S6": [
     {
-      "id": "A6-1", "type": "supplier",
-      "data": { "label": "Aus Rare Mins", "tier_level": 2, "criticality_level": "Critical", "score": 78, "materialIndex": 3.5, "base_cost": 120, "recycled": false, "location": "Australia", "country_code": "AU" },
-      "edgeData": { "label": "Raw Earths", "logistics": { "mode": "Ship", "distance_km": 14000, "weight_ton": 20, "cost": 4000, "emission_factor": 0.02 } }
+      "id": "A-S6-1",
+      "data": {
+        "label": "Amara Raja Energy",
+        "location": "Tirupati, AP",
+        "country_code": "IN-AP",
+        "tier_level": 2,
+        "criticality_level": "high",
+        "materialIndex": 2.8,
+        "base_cost": 3400,
+        "score": 71,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Rail", "distance_km": 1400, "weight_ton": 150, "emission_factor": 0.00006, "cost": 65000 } }
+    },
+    {
+      "id": "A-S6-2",
+      "data": {
+        "label": "LG Energy India",
+        "location": "Seoul, KR",
+        "country_code": "KR",
+        "tier_level": 2,
+        "criticality_level": "high",
+        "materialIndex": 3.1,
+        "base_cost": 3200,
+        "score": 79,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Ship", "distance_km": 6100, "weight_ton": 150, "emission_factor": 0.00011, "cost": 240000 } }
     }
   ],
-  "S7": [
+  "S10": [
     {
-      "id": "A7-1", "type": "supplier",
-      "data": { "label": "Nevada Lithium", "tier_level": 2, "criticality_level": "High", "score": 85, "materialIndex": 1.2, "base_cost": 400, "recycled": false, "location": "USA", "country_code": "US" },
-      "edgeData": { "label": "Lithium Cells", "logistics": { "mode": "Truck", "distance_km": 3000, "weight_ton": 40, "cost": 5000, "emission_factor": 0.15 } }
+      "id": "A-S10-1",
+      "data": {
+        "label": "Rajasthan Li Minerals",
+        "location": "Bikaner, RJ",
+        "country_code": "IN-RJ",
+        "tier_level": 3,
+        "criticality_level": "high",
+        "materialIndex": 2.6,
+        "base_cost": 4100,
+        "score": 62,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 1300, "weight_ton": 80, "emission_factor": 0.00012, "cost": 48000 } }
+    },
+    {
+      "id": "A-S10-2",
+      "data": {
+        "label": "Albemarle Australia",
+        "location": "Perth, AU",
+        "country_code": "AU",
+        "tier_level": 3,
+        "criticality_level": "high",
+        "materialIndex": 3.8,
+        "base_cost": 5100,
+        "score": 55,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Ship", "distance_km": 6800, "weight_ton": 80, "emission_factor": 0.00011, "cost": 280000 } }
     }
   ],
   "S8": [
     {
-      "id": "A8-1", "type": "supplier",
-      "data": { "label": "Bio-Synthetics", "tier_level": 2, "criticality_level": "Medium", "score": 95, "materialIndex": 0.1, "base_cost": 200, "recycled": true, "location": "Canada", "country_code": "CA" },
-      "edgeData": { "label": "Bio Polymers", "logistics": { "mode": "Rail", "distance_km": 4000, "weight_ton": 200, "cost": 12000, "emission_factor": 0.05 } }
+      "id": "A-S8-1",
+      "data": {
+        "label": "Tata Steel Jamshedpur",
+        "location": "Jamshedpur, JH",
+        "country_code": "IN-JH",
+        "tier_level": 2,
+        "criticality_level": "medium",
+        "materialIndex": 1.7,
+        "base_cost": 2900,
+        "score": 88,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Rail", "distance_km": 1700, "weight_ton": 90, "emission_factor": 0.00006, "cost": 38000 } }
+    },
+    {
+      "id": "A-S8-2",
+      "data": {
+        "label": "JSW Steel Karnataka",
+        "location": "Bellary, KA",
+        "country_code": "IN-KA",
+        "tier_level": 2,
+        "criticality_level": "medium",
+        "materialIndex": 1.9,
+        "base_cost": 3100,
+        "score": 82,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 1000, "weight_ton": 90, "emission_factor": 0.00012, "cost": 55000 } }
+    }
+  ],
+  "S5": [
+    {
+      "id": "A-S5-1",
+      "data": {
+        "label": "Luminous Energy UP",
+        "location": "Gurgaon, HR",
+        "country_code": "IN-HR",
+        "tier_level": 2,
+        "criticality_level": "high",
+        "materialIndex": 2.5,
+        "base_cost": 4600,
+        "score": 74,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Rail", "distance_km": 1400, "weight_ton": 200, "emission_factor": 0.00006, "cost": 48000 } }
+    },
+    {
+      "id": "A-S5-2",
+      "data": {
+        "label": "Panasonic Energy KA",
+        "location": "Mysuru, KA",
+        "country_code": "IN-KA",
+        "tier_level": 2,
+        "criticality_level": "high",
+        "materialIndex": 2.2,
+        "base_cost": 5100,
+        "score": 86,
+        "recycled": true
+      },
+      "edgeData": { "logistics": { "mode": "Rail", "distance_km": 850, "weight_ton": 200, "emission_factor": 0.00006, "cost": 40000 } }
+    }
+  ],
+  "S2": [
+    {
+      "id": "A-S2-1",
+      "data": {
+        "label": "Pricol Wiring TN",
+        "location": "Coimbatore, TN",
+        "country_code": "IN-TN",
+        "tier_level": 1,
+        "criticality_level": "high",
+        "materialIndex": 1.2,
+        "base_cost": 2900,
+        "score": 84,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 1100, "weight_ton": 45, "emission_factor": 0.00012, "cost": 62000 } }
+    },
+    {
+      "id": "A-S2-2",
+      "data": {
+        "label": "Samvardhana GJ",
+        "location": "Vadodara, GJ",
+        "country_code": "IN-GJ",
+        "tier_level": 1,
+        "criticality_level": "high",
+        "materialIndex": 1.5,
+        "base_cost": 3000,
+        "score": 77,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 900, "weight_ton": 45, "emission_factor": 0.00012, "cost": 50000 } }
+    }
+  ],
+  "S1": [
+    {
+      "id": "A-S1-1",
+      "data": {
+        "label": "Greenko Battery MH",
+        "location": "Nagpur, MH",
+        "country_code": "IN-MH",
+        "tier_level": 1,
+        "criticality_level": "high",
+        "materialIndex": 1.8,
+        "base_cost": 7800,
+        "score": 80,
+        "recycled": true
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 230, "weight_ton": 120, "emission_factor": 0.00012, "cost": 19000 } }
+    }
+  ],
+  "S3": [
+    {
+      "id": "A-S3-1",
+      "data": {
+        "label": "Sona BLW Precision",
+        "location": "Gurugram, HR",
+        "country_code": "IN-HR",
+        "tier_level": 1,
+        "criticality_level": "medium",
+        "materialIndex": 1.4,
+        "base_cost": 4500,
+        "score": 79,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 1480, "weight_ton": 80, "emission_factor": 0.00012, "cost": 82000 } }
+    }
+  ],
+  "S7": [
+    {
+      "id": "A-S7-1",
+      "data": {
+        "label": "Hindalco RJ Copper",
+        "location": "Jaipur, RJ",
+        "country_code": "IN-RJ",
+        "tier_level": 2,
+        "criticality_level": "medium",
+        "materialIndex": 1.6,
+        "base_cost": 2100,
+        "score": 78,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 550, "weight_ton": 60, "emission_factor": 0.00012, "cost": 24000 } }
+    }
+  ],
+  "S11": [
+    {
+      "id": "A-S11-1",
+      "data": {
+        "label": "Vedanta Zinc Smelter",
+        "location": "Dariba, RJ",
+        "country_code": "IN-RJ",
+        "tier_level": 3,
+        "criticality_level": "medium",
+        "materialIndex": 1.9,
+        "base_cost": 1100,
+        "score": 73,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 580, "weight_ton": 95, "emission_factor": 0.00012, "cost": 26000 } }
+    }
+  ],
+  "S12": [
+    {
+      "id": "A-S12-1",
+      "data": {
+        "label": "Navin Fluorine GJ",
+        "location": "Bharuch, GJ",
+        "country_code": "IN-GJ",
+        "tier_level": 3,
+        "criticality_level": "medium",
+        "materialIndex": 2.2,
+        "base_cost": 1750,
+        "score": 76,
+        "recycled": false
+      },
+      "edgeData": { "logistics": { "mode": "Truck", "distance_km": 280, "weight_ton": 40, "emission_factor": 0.00012, "cost": 14000 } }
     }
   ]
 }
