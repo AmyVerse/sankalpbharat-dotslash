@@ -1,6 +1,25 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function LoginPage({ isLogin, setIsLogin }: { isLogin: boolean; setIsLogin: React.Dispatch<React.SetStateAction<boolean>> }) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (isLogin) {
+      if (email === 'editor@in' && password === 'New12345') {
+        navigate('/dashboard');
+      } else {
+        setError('Invalid corporate credentials.');
+      }
+    } else {
+      setIsLogin(true);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fcf9f4] font-sans text-[#553a34] flex selection:bg-[#ffdea0] selection:text-[#261900] overflow-hidden">
 
@@ -55,13 +74,16 @@ export default function LoginPage({ isLogin, setIsLogin }: { isLogin: boolean; s
               </p>
             </div>
 
-            <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
+            {error && <p className="text-red-500 text-xs font-bold mb-4">{error}</p>}
+
+            <form className="space-y-8" onSubmit={handleSubmit}>
               {!isLogin && (
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-[#553a34]">Company Name</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#553a34] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
+                    required
+                    className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#dac2b6] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
                     placeholder="E.g. Acme Corporation"
                   />
                 </div>
@@ -71,7 +93,10 @@ export default function LoginPage({ isLogin, setIsLogin }: { isLogin: boolean; s
                 <label className="text-xs font-bold text-[#553a34]">Corporate Email</label>
                 <input
                   type="email"
-                  className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#553a34] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#dac2b6] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
                   placeholder="name@company.com"
                 />
               </div>
@@ -83,7 +108,10 @@ export default function LoginPage({ isLogin, setIsLogin }: { isLogin: boolean; s
                 </div>
                 <input
                   type="password"
-                  className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#553a34] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#dac2b6] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
                   placeholder="••••••••"
                 />
               </div>
@@ -96,7 +124,7 @@ export default function LoginPage({ isLogin, setIsLogin }: { isLogin: boolean; s
             <div className="mt-12 flex flex-col items-start gap-2 text-sm text-[#877369] font-medium">
               <span>{isLogin ? "No corporate account yet? " : "Already partnered with us? "}</span>
               <button
-                onClick={() => setIsLogin(!isLogin)}
+                onClick={() => { setIsLogin(!isLogin); setError(''); }}
                 className="text-[#974726] font-bold border-b-[2px] border-[#974726] hover:text-[#553a34] hover:border-[#553a34] transition-all pb-0.5 text-xs"
               >
                 {isLogin ? 'Apply for access' : 'Sign in instead'}
