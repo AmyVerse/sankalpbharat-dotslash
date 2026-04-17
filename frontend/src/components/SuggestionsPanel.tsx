@@ -10,28 +10,28 @@ export const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ aiResponse, 
   if (!aiResponse && recommendations.length === 0) return null;
 
   return (
-    <div className="absolute top-20 right-4 w-64 bg-slate-900/90 border border-slate-700/50 backdrop-blur-md rounded-xl shadow-2xl z-10 text-white font-sans overflow-hidden">
-      {/* AI Response Summary */}
+    <div className="absolute top-24 right-10 w-72 bg-white border border-[#dac2b6] border-opacity-60 rounded-md shadow-2xl z-20 text-[#553a34] font-sans overflow-hidden animate-fade-in">
+      {/* AI Response Summary - Editorial Style */}
       {aiResponse && (
-        <div className="p-3 border-b border-slate-800 bg-gradient-to-br from-blue-900/30 to-purple-900/30">
-          <div className="flex items-start gap-2">
-            <Sparkles size={13} className="text-purple-400 mt-0.5 shrink-0" />
-            <p className="text-[11px] text-slate-200 leading-relaxed">{aiResponse}</p>
+        <div className="p-5 border-b border-[#dac2b6] border-opacity-30 bg-[#ebe8e3]">
+          <div className="flex items-start gap-3">
+            <Sparkles size={14} className="text-[#974726] mt-0.5 shrink-0" />
+            <p className="text-[11px] text-[#553a34] font-medium leading-relaxed italic">{aiResponse}</p>
           </div>
         </div>
       )}
 
-      {/* Recommended Actions */}
+      {/* Recommended Actions - Archival Notation Style */}
       {recommendations.length > 0 && (
-        <div className="p-3">
-          <div className="flex items-center gap-1.5 mb-2">
-            <Lightbulb size={12} className="text-yellow-400" />
-            <span className="text-[9px] uppercase font-bold text-slate-500 tracking-widest">Suggested Actions</span>
+        <div className="p-5 bg-white">
+          <div className="flex items-center gap-2 mb-4">
+            <Lightbulb size={14} className="text-[#553d00]" />
+            <span className="text-[9px] uppercase font-bold text-[#877369] tracking-[0.2em]">Tactical Advisories</span>
           </div>
-          <div className="space-y-2">
+          <div className="space-y-3">
             {recommendations.map((rec, i) => (
-              <div key={i} className="flex gap-2 items-start bg-slate-800/70 border border-slate-700/50 rounded-lg p-2.5 text-[11px] text-slate-300 leading-relaxed">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1 shrink-0" />
+              <div key={i} className="flex gap-3 items-start bg-[#fcf9f4] border border-[#dac2b6] border-opacity-30 rounded-md p-3 text-[11px] text-[#553a34] font-bold leading-snug">
+                <div className="w-2 h-2 rounded-full bg-[#974726] mt-1 shrink-0" />
                 {rec}
               </div>
             ))}
@@ -41,3 +41,4 @@ export const SuggestionsPanel: React.FC<SuggestionsPanelProps> = ({ aiResponse, 
     </div>
   );
 };
+

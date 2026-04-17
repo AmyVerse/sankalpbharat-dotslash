@@ -2,96 +2,109 @@ import { useState } from 'react';
 
 export default function LoginPage({ isLogin, setIsLogin }: { isLogin: boolean; setIsLogin: React.Dispatch<React.SetStateAction<boolean>> }) {
   return (
-    <div className="min-h-screen bg-neutral-950 flex flex-col md:flex-row font-sans selection:bg-neutral-800 selection:text-white">
-      {/* Left Pane - Branding & Tagline */}
-      <div className="flex-1 flex flex-col justify-between px-8 py-12 md:px-20 lg:px-32 bg-neutral-950">
-        {/* Top Navbar / Decorative Links */}
-        <div className="flex items-center space-x-8 text-sm font-medium text-neutral-400">
-          <a href="#" className="hover:text-white transition-colors">About Us</a>
-          <a href="#" className="hover:text-white transition-colors">Documentation</a>
-          <a href="#" className="hover:text-white transition-colors">Help & Support</a>
-        </div>
+    <div className="min-h-screen bg-[#fcf9f4] font-sans text-[#553a34] flex selection:bg-[#ffdea0] selection:text-[#261900] overflow-hidden">
 
-        {/* Main Branding */}
-        <div className="max-w-2xl my-auto py-12">
-          <h1 className="text-5xl md:text-7xl font-bold tracking-tighter text-white mb-8">
-            ESGAudit
-          </h1>
-          <p className="text-lg md:text-xl text-neutral-300 leading-relaxed font-normal mb-8">
-            A robust, backend-driven platform empowering corporates to track, control, and reduce Scope 1, 2, and 3 carbon emissions for a sustainable future.
-          </p>
-          <div className="flex items-center space-x-3 text-sm text-neutral-400 mt-12">
-            <span className="w-2 h-2 bg-emerald-500 rounded-lg"></span>
-            <span className="tracking-wide uppercase font-semibold text-xs text-neutral-300">Enterprise Sustainability Infrastructure</span>
+      {/* Grid Layout mimicking Editorial Margins */}
+      <div className="grid grid-cols-1 md:grid-cols-12 w-full max-w-[1600px] mx-auto min-h-screen">
+
+        {/* Left Pane - Story & Context (cols 2 through 6) */}
+        <div className="hidden md:flex flex-col justify-between col-span-5 col-start-2 py-20 pr-12">
+          {/* Top navigation - Tactical / Notated feel */}
+          <div className="flex space-x-8 text-xs font-bold text-[#974726]">
+            <a href="#" className="border-b-2 border-transparent hover:border-[#974726] pb-1 transition-all">About Us</a>
+            <a href="#" className="border-b-2 border-transparent hover:border-[#974726] pb-1 transition-all">Documentation</a>
+            <a href="#" className="border-b-2 border-transparent hover:border-[#974726] pb-1 transition-all">Help & Support</a>
           </div>
-        </div>
 
-        {/* Footer (Decorative) */}
-        <div className="text-xs text-neutral-500 font-medium pb-4">
-          &copy; {new Date().getFullYear()} ESGAudit Systems. All rights reserved.
-        </div>
-      </div>
+          <div className="my-auto">
+            {/* Archival Tag */}
+            <div className="inline-block px-3 py-1 bg-[#ffdea0] text-[#261900] text-[10px] font-bold rounded-full mb-8">
+              Enterprise Sustainability Infrastructure
+            </div>
 
-      {/* Right Pane - Form */}
-      <div className="w-full md:w-[480px] lg:w-[560px] bg-neutral-900 flex flex-col justify-center px-8 py-16 md:px-16 shadow-2xl">
-        <div className="w-full max-w-sm mx-auto">
-          <div className="mb-12">
-            <h2 className="text-3xl md:text-4xl font-semibold text-white mb-3 tracking-tight">
-              {isLogin ? 'Sign In' : 'Register Corporate'}
-            </h2>
-            <p className="text-neutral-400 text-sm font-medium">
-              Enter your corporate credentials to continue accessing the audit portal.
+            <h1 className="text-6xl lg:text-8xl font-bold tracking-tight text-[#553a34] leading-[0.9] mb-8">
+              ESGAudit
+            </h1>
+            <p className="text-lg text-[#553a34] font-medium leading-relaxed max-w-sm">
+              A robust, backend-driven platform empowering corporates to track, control, and reduce Scope 1, 2, and 3 carbon emissions for a sustainable future.
             </p>
           </div>
 
-          <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
-            {!isLogin && (
-              <div className="space-y-2.5">
-                <label className="text-xs uppercase tracking-wider font-semibold text-neutral-400">Company Name</label>
+          <div className="text-xs font-semibold text-[#877369]">
+            &copy; {new Date().getFullYear()} ESGAudit Systems. All rights reserved.
+          </div>
+        </div>
+
+        {/* Right Pane - Action & Data (cols 8 through 11) */}
+        <div className="col-span-1 md:col-span-4 md:col-start-8 flex flex-col justify-center px-6 py-12 md:px-0">
+
+          {/* Mobile Heading */}
+          <div className="md:hidden mb-12">
+            <h1 className="text-5xl font-bold tracking-tight text-[#553a34] leading-[0.9] mb-4">ESGAudit</h1>
+            <p className="text-[#877369] text-sm font-medium">Enterprise Sustainability Infrastructure</p>
+          </div>
+
+          {/* Paper-on-Table Form Container */}
+          <div className="bg-white p-10 md:p-14 shadow-[0_20px_40px_-5px_rgba(85,58,52,0.04),0_8px_16px_-4px_rgba(85,58,52,0.08)] border border-[#dac2b6] border-opacity-30 flex flex-col">
+            <div className="mb-10">
+              <h2 className="text-3xl font-bold text-[#553a34] mb-2">
+                {isLogin ? 'Sign In' : 'Register Corporate'}
+              </h2>
+              <p className="text-[#877369] font-medium text-sm">
+                Enter your corporate credentials to continue accessing the audit portal.
+              </p>
+            </div>
+
+            <form className="space-y-8" onSubmit={(e) => e.preventDefault()}>
+              {!isLogin && (
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-[#553a34]">Company Name</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#553a34] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
+                    placeholder="E.g. Acme Corporation"
+                  />
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-[#553a34]">Corporate Email</label>
                 <input
-                  type="text"
-                  className="w-full px-4 py-3.5 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-700 placeholder-neutral-500 transition-colors"
-                  placeholder="E.g. Acme Corporation"
+                  type="email"
+                  className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#553a34] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
+                  placeholder="name@company.com"
                 />
               </div>
-            )}
 
-            <div className="space-y-2.5">
-              <label className="text-xs uppercase tracking-wider font-semibold text-neutral-400">Corporate Email</label>
-              <input
-                type="email"
-                className="w-full px-4 py-3.5 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-700 placeholder-neutral-500 transition-colors"
-                placeholder="name@company.com"
-              />
-            </div>
-
-            <div className="space-y-2.5">
-              <div className="flex items-center justify-between">
-                <label className="text-xs uppercase tracking-wider font-semibold text-neutral-400">Password</label>
-                {isLogin && <a href="#" className="text-xs text-neutral-400 hover:text-white transition-colors font-medium">Forgot Password?</a>}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-[#553a34]">Password</label>
+                  {isLogin && <a href="#" className="text-xs font-bold text-[#974726] border-b border-transparent hover:border-[#974726] transition-all">Forgot Password?</a>}
+                </div>
+                <input
+                  type="password"
+                  className="w-full px-4 py-3 bg-[#ebe8e3] text-[#553a34] border-b border-[#553a34] focus:outline-none focus:border-b-2 placeholder-[#a3948e] transition-all font-medium"
+                  placeholder="••••••••"
+                />
               </div>
-              <input
-                type="password"
-                className="w-full px-4 py-3.5 bg-neutral-800 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-700 placeholder-neutral-500 transition-colors"
-                placeholder="••••••••"
-              />
+
+              <button type="submit" className="w-full py-4 mt-4 bg-[#553a34] hover:bg-[#3a2824] text-white font-bold rounded-md transition-colors text-sm">
+                {isLogin ? 'Access Dashboard' : 'Initialize Account'}
+              </button>
+            </form>
+
+            <div className="mt-12 flex flex-col items-start gap-2 text-sm text-[#877369] font-medium">
+              <span>{isLogin ? "No corporate account yet? " : "Already partnered with us? "}</span>
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-[#974726] font-bold border-b-[2px] border-[#974726] hover:text-[#553a34] hover:border-[#553a34] transition-all pb-0.5 text-xs"
+              >
+                {isLogin ? 'Apply for access' : 'Sign in instead'}
+              </button>
             </div>
-
-            <button type="submit" className="w-full py-4 px-4 mt-8 bg-white hover:bg-neutral-200 text-neutral-950 font-bold rounded-lg transition-colors tracking-wide">
-              {isLogin ? 'Access Dashboard' : 'Initialize Account'}
-            </button>
-          </form>
-
-          <p className="mt-10 text-center text-sm text-neutral-400 font-medium">
-            {isLogin ? "No corporate account yet? " : "Already partnered with us? "}
-            <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-white hover:text-neutral-300 transition-colors font-bold ml-1"
-            >
-              {isLogin ? 'Apply for access' : 'Sign in instead'}
-            </button>
-          </p>
+          </div>
         </div>
+
       </div>
     </div>
   );

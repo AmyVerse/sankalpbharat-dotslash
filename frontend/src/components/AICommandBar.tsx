@@ -5,7 +5,7 @@ import { Sparkles, Send, Loader2 } from 'lucide-react';
 export interface AIRecommendation {
   action: string;
   reasoning: string;
-  metrics?: { label: string; value: string; trend: 'up'|'down'|'neutral' }[];
+  metrics?: { label: string; value: string; trend: 'up' | 'down' | 'neutral' }[];
 }
 
 export interface AICommandResult {
@@ -25,9 +25,9 @@ interface AICommandBarProps {
   onAutoRunClear?: () => void;
 }
 
-export const AICommandBar: React.FC<AICommandBarProps> = ({ 
-  onCommand, 
-  contextNodes = [], 
+export const AICommandBar: React.FC<AICommandBarProps> = ({
+  onCommand,
+  contextNodes = [],
   contextAlternatives = {},
   autoRunPrompt,
   onAutoRunClear
@@ -102,23 +102,16 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({
       };
 
       const activeSuppliers = contextNodes.filter(n => n.type === 'supplier').map(n => `{id: "${n.id}", label: "${n.data.label}"}`).join(', ');
-      
+
       const systemInstruction = `You are the AI Co-Pilot for a Supply Chain Visualization Dashboard. 
-      The user will give you a natural language command. You can do three things:
-      1. Apply tariffs/subsidies: Extract country_code (e.g. CN, IN-TN) and multiplier (1.0 is neutral, >1.0 is tax, <1.0 is subsidy) into tax_updates.
-      2. Swap a supplier: If they ask to swap a supplier, look at the active suppliers and alternatives, and populate the node_swap object with target_node_id and alternative_node_id.
-      3. Undo/Revert: If they ask to undo, go back, or reverse, set revert_timeline to true.
-      
-      Context data:
-      Active Suppliers: ${activeSuppliers}
-      Available Alternatives: ${JSON.stringify(contextAlternatives)}
-      
-      Write a short, friendly response in 'ai_response' explaining what you did, without sounding like a robot. Speak in first person.
-      Recommend 1 or 2 next actions in 'recommended_actions'. IMPORTANT: 'recommended_actions' strings MUST be strictly formatted commands. Provide a 1-sentence 'reasoning' and extract 2 hard numbers into the 'metrics' array with label, value, and trend ('up' or 'down'). DO NOT ask questions.`;
+      The user will give you a natural language command (e.g., "Add a heavy 50% tariff to Chinese imports" or "Tax the US to 2.5x"). 
+      Extract the country_code (e.g. EU, CN, US, CL, TW, BR, AU, CA) and the multiplier (from 0.5 to 2.5, where 1.0 is neutral, >1.0 is tax, <1.0 is subsidy).
+      You must also recommend 1-2 actions based on their decision. For example, if they tax China heavily, recommend swapping Chinese suppliers for Taiwanese or US suppliers.
+      Write a short, professional response in 'ai_response' confirming what you did. Use authoritative, high-trust language.`;
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: cmdText,
+        contents: prompt,
         config: {
           systemInstruction: systemInstruction,
           responseMimeType: 'application/json',
@@ -137,7 +130,7 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({
 
     } catch (err: any) {
       console.error(err);
-      setAiText("Error parsing command. Did you use a supported region? " + err?.message);
+      setAiText("Error parsing command. " + err?.message);
     } finally {
       setIsLoading(false);
       if (onAutoRunClear) onAutoRunClear();
@@ -157,36 +150,37 @@ export const AICommandBar: React.FC<AICommandBarProps> = ({
   };
 
   return (
-    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl bg-slate-900/90 border border-slate-700/50 backdrop-blur-md rounded-2xl shadow-2xl z-50 overflow-hidden">
+    <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-3xl bg-white border border-[#dac2b6] border-opacity-60 rounded-md shadow-2xl z-50 overflow-hidden text-[#553a34] transition-all">
 
-      {/* Brief AI Confirmation Toast */}
+      {/* Brief AI Confirmation Toast - Archive Feel */}
       {aiText && (
-        <div className="px-4 py-2.5 border-b border-slate-800 bg-gradient-to-r from-blue-900/20 to-purple-900/20 flex items-center gap-2">
-          <Sparkles size={13} className="text-purple-400 shrink-0" />
-          <p className="text-[11px] text-slate-300 leading-snug">{aiText}</p>
+        <div className="px-6 py-4 border-b border-[#dac2b6] border-opacity-30 bg-[#fcf9f4] flex items-center gap-3">
+          <Sparkles size={14} className="text-[#974726] shrink-0" />
+          <p className="text-[11px] text-[#553a34] font-medium leading-normal italic">{aiText}</p>
         </div>
       )}
 
-      {/* Input Bar */}
-      <form onSubmit={handleSubmit} className="flex relative items-center p-2">
-        <div className="absolute left-6">
-          <Sparkles size={16} className="text-blue-500" />
+      {/* Input Bar - Technical Notebook Style */}
+      <form onSubmit={handleSubmit} className="flex relative items-center p-3">
+        <div className="absolute left-8">
+          <Sparkles size={18} className="text-[#974726]" />
         </div>
         <input
           type="text"
           value={prompt}
           onChange={e => setPrompt(e.target.value)}
-          placeholder="Ask Gemini to simulate a policy change (e.g. 'Tax China by 50%')..."
-          className="w-full bg-transparent border-none text-slate-200 text-sm pl-12 pr-14 py-3 placeholder:text-slate-600 focus:outline-none focus:ring-0"
+          placeholder="Issue tactical directive (e.g. 'Tax China by 50%' or 'Subsidize EU routes')..."
+          className="w-full bg-transparent border-none text-[#553a34] font-bold text-sm pl-16 pr-20 py-5 placeholder:text-[#a3948e] focus:outline-none focus:ring-0"
         />
         <button
           type="submit"
           disabled={isLoading || !prompt.trim()}
-          className="absolute right-4 p-2 bg-blue-600/20 text-blue-400 hover:bg-blue-600 hover:text-white rounded-lg transition-colors disabled:opacity-50 disabled:hover:bg-blue-600/20 disabled:hover:text-blue-400 flex items-center justify-center"
+          className="absolute right-6 px-5 py-3 bg-[#553a34] text-white hover:bg-[#3a2824] rounded-sm text-[10px] font-bold transition-all disabled:opacity-30 uppercase tracking-[0.2em] flex items-center justify-center gap-2"
         >
-          {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+          {isLoading ? <Loader2 size={16} className="animate-spin" /> : <>Initiate <Send size={14} /></>}
         </button>
       </form>
     </div>
   );
 };
+

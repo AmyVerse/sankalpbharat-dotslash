@@ -25,11 +25,11 @@ const OperationsDashboard = ({ activeTime, setActiveTime }) => {
     const costScore = item.expected_cost_impact / maxCost;
 
     if (reductionScore > 0.5 && costScore < 0.5) {
-      return { fill: "#10B981", stroke: "#059669" }; // ROI Positive - Emerald
+      return { fill: "#15803d", stroke: "#166534" }; // ROI Positive - Vivid Green
     } else if (costScore > 0.6) {
-      return { fill: "#F59E0B", stroke: "#D97706" }; // Capital Intensive - Amber
+      return { fill: "#553d00", stroke: "#3a2a00" }; // Capital Intensive - Raw Sienna
     }
-    return { fill: "#3B82F6", stroke: "#2563EB" }; // Default - Blue
+    return { fill: "#553a34", stroke: "#3a2824" }; // Default - Espresso
   };
 
   // 1. Time multiplier based on activeTime
@@ -46,23 +46,23 @@ const OperationsDashboard = ({ activeTime, setActiveTime }) => {
 
 
   return (
-    <div className="flex h-full w-full overflow-hidden">
+    <div className="flex h-full w-full overflow-hidden bg-[#fcf9f4]">
       
-      {/* Time-Control Sidebar */}
-      <aside className="w-64 bg-[#111827]/50 border-r border-[#1F2937] p-6 flex flex-col gap-6 relative z-10 hidden md:flex overflow-y-auto custom-scrollbar">
+      {/* Time-Control Sidebar - Editorial Style */}
+      <aside className="w-64 bg-[#ebe8e3] border-r border-[#dac2b6] border-opacity-30 p-8 flex flex-col gap-8 relative z-10 hidden md:flex overflow-y-auto custom-scrollbar">
         <div>
-          <h2 className="text-xs font-bold tracking-widest text-[#9CA3AF] uppercase mb-4 flex items-center gap-2">
-            <CalendarDays className="w-4 h-4" /> Temporal Filter
+          <h2 className="text-[10px] font-bold tracking-[0.2em] text-[#877369] uppercase mb-6 flex items-center gap-2">
+            <CalendarDays className="w-3.5 h-3.5" /> Temporal Filter
           </h2>
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             {timeFilters.map(tf => (
               <button
                 key={tf.id}
                 onClick={() => setActiveTime(tf.id)}
-                className={`text-sm py-2 px-3 rounded-lg text-left transition-all border ${
+                className={`text-xs font-bold py-3 px-4 rounded-md text-left transition-all border ${
                   activeTime === tf.id 
-                  ? 'bg-[#10B981]/20 border-[#10B981]/50 text-[#10B981] shadow-[0_0_15px_rgba(16,185,129,0.15)]' 
-                  : 'bg-transparent border-[#374151] text-[#9CA3AF] hover:border-[#4B5563] hover:text-[#D1D5DB]'
+                  ? 'bg-[#553a34] border-[#553a34] text-white shadow-sm' 
+                  : 'bg-white border-[#dac2b6] border-opacity-40 text-[#553a34] hover:border-[#877369]'
                 }`}
               >
                 {tf.label}
@@ -71,29 +71,27 @@ const OperationsDashboard = ({ activeTime, setActiveTime }) => {
           </div>
         </div>
 
-        <div className="w-full h-px bg-gradient-to-r from-transparent via-[#374151] to-transparent my-2" />
+        <div className="w-full h-px bg-[#dac2b6] opacity-30 my-2" />
 
         <div>
-          <h2 className="text-xs font-bold tracking-widest text-[#9CA3AF] uppercase mb-4 flex items-center gap-2">
-            <Filter className="w-4 h-4" /> Insight Log
+          <h2 className="text-[10px] font-bold tracking-[0.2em] text-[#877369] uppercase mb-6 flex items-center gap-2">
+            <Filter className="w-3.5 h-3.5" /> Insight Log
           </h2>
-          <div className="text-xs text-[#9CA3AF] leading-relaxed space-y-3">
-            <p>Data shifting based on selected timeframe adjusts investment scaling dynamically.</p>
-            <p className="p-3 bg-[#1F2937]/50 rounded-lg border border-[#374151]">
-              <span className="text-[#10B981] font-semibold block mb-1">MACC Intelligence</span>
-              Focus on top-left quadrant items for highest ROI carbon yield.
-            </p>
+          <div className="text-xs text-[#553a34] leading-relaxed space-y-4">
+            <p className="font-medium opacity-80">Data shifting based on selected timeframe adjusts investment scaling dynamically.</p>
+            <div className="p-4 bg-white border border-[#dac2b6] border-opacity-30 rounded-md">
+              <span className="text-[#974726] font-bold block mb-1 text-[10px] uppercase tracking-wider">MACC Intelligence</span>
+              <p className="text-[11px] font-medium leading-normal">Focus on top-left quadrant items for highest ROI carbon yield.</p>
+            </div>
           </div>
         </div>
       </aside>
 
       {/* Main Content */}
-      <div className="flex-1 p-8 overflow-y-auto custom-scrollbar flex flex-col gap-6 relative">
-        {/* Background glow element */}
-        <div className="absolute top-1/4 left-1/2 w-[600px] h-[600px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none transform -translate-x-1/2 -translate-y-1/2" />
-
+      <div className="flex-1 p-10 overflow-y-auto custom-scrollbar flex flex-col gap-10 relative">
+        
         {/* KPI Banner */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
           <KPICard 
             title="Total Equivalent Reductions" 
             value="32,450" 
@@ -119,28 +117,31 @@ const OperationsDashboard = ({ activeTime, setActiveTime }) => {
         </div>
 
         {/* Main Graph Area */}
-        <div className="glass-panel rounded-xl p-6 flex-1 min-h-[500px] flex flex-col relative z-10">
-          <div className="flex justify-between items-end mb-6">
+        <div className="editorial-card p-8 flex-1 min-h-[500px] flex flex-col relative z-10">
+          <div className="flex justify-between items-end mb-8 border-b border-[#dac2b6] border-opacity-20 pb-6">
             <div>
-              <h2 className="text-lg font-semibold text-white">Action vs. Impact Matrix</h2>
-              <div className="flex items-center gap-2 mt-3">
+              <h2 className="text-2xl font-bold text-[#553a34] tracking-tight">Action vs. Impact Matrix</h2>
+              <div className="flex items-center gap-3 mt-4">
                 <button 
                   onClick={() => setProjectType('future')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${projectType === 'future' ? 'bg-[#10B981] text-white shadow-lg' : 'bg-[#1F2937] text-[#9CA3AF] hover:bg-[#374151]'}`}
+                  className={`px-4 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${projectType === 'future' ? 'bg-[#553a34] text-white' : 'bg-[#ebe8e3] text-[#877369] hover:bg-[#dac2b6]'}`}
                 >
                   Future Projects
                 </button>
                 <button 
                   onClick={() => setProjectType('current')}
-                  className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${projectType === 'current' ? 'bg-[#3B82F6] text-white shadow-lg' : 'bg-[#1F2937] text-[#9CA3AF] hover:bg-[#374151]'}`}
+                  className={`px-4 py-2 rounded-md text-[10px] font-bold uppercase tracking-wider transition-all ${projectType === 'current' ? 'bg-[#553a34] text-white' : 'bg-[#ebe8e3] text-[#877369] hover:bg-[#dac2b6]'}`}
                 >
                   Current Projects
                 </button>
               </div>
             </div>
+            <div className="text-[10px] font-bold text-[#974726] uppercase tracking-[0.2em] mb-2 px-3 py-1 bg-[#ffdea0] text-[#261900] rounded-full">
+              Live Analysis
+            </div>
           </div>
           
-          <div className="flex-1 w-full bg-[#0B1120]/50 rounded-lg border border-[#1F2937] p-4">
+          <div className="flex-1 w-full bg-[#fcf9f4] border border-[#dac2b6] border-opacity-30 rounded-md p-6">
             <ScatterPlot 
               data={displayData}
               xKey="expected_cost_impact"
@@ -159,3 +160,4 @@ const OperationsDashboard = ({ activeTime, setActiveTime }) => {
 };
 
 export default OperationsDashboard;
+
