@@ -1,0 +1,11 @@
+numpy==2.4.4
+pandas==3.0.2
+scikit-learn==1.8.0
+scipy==1.17.1
+matplotlib==3.10.8
+seaborn==0.13.2
+fastapi==0.115.12
+uvicorn==0.34.2
+python-multipart==0.0.20
+gradio==5.29.0
+requests==2.32.3
