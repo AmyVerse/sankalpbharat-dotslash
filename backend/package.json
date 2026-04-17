@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
+ "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon index.js",
-    "build": "prisma generate",
+    "build": "prisma generate && node scripts/generateSwagger.js",
     "prisma:generate": "prisma generate",
     "prisma:push": "prisma db push",
     "prisma:studio": "prisma studio",
@@ -20,18 +20,20 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/adapter-pg": "^7.7.0",
-    "@prisma/client": "^7.7.0",
+    "@prisma/adapter-pg": "^6.2.1",
+    "@prisma/client": "^6.2.1",
     "@supabase/supabase-js": "^2.103.3",
+    "axios": "^1.15.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "pg": "^8.20.0",
-    "serverless-http": "^4.0.0"
+    "serverless-http": "^4.0.0",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
     "dotenv": "^17.4.2",
     "nodemon": "^3.1.14",
-    "prisma": "^7.7.0"
+    "prisma": "^6.2.1"
   },
   "overrides": {
     "@hono/node-server": "^1.19.13"

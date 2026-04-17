@@ -1,25 +1,77 @@
+import logging
 from pathlib import Path
 from tempfile import NamedTemporaryFile
-from typing import Dict, Any
+from typing import Any, Dict
 from uuid import uuid4
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse
 
+from src.config import (
+    FORECAST_MODEL_PATH,
+    OUTPUT_DIR,
+    SCENARIO_MODEL_ACTIVE_PATH,
+    SERVICE_NAME,
+    SERVICE_VERSION,
+)
 from dataclean import clean_file
+from src.model_loader import ModelRegistry
+from src.predictor import PredictionError, predict_forecast, predict_scenario
+from src.schemas import FeaturesPayload, ScenarioFeaturesPayload
 
-app = FastAPI(title="Data Cleaning API", version="1.0.0")
+logging.basicConfig(level=logging.INFO)
 
-OUTPUT_DIR = Path("cleaned_outputs")
-OUTPUT_DIR.mkdir(exist_ok=True)
+app = FastAPI(title=SERVICE_NAME, version=SERVICE_VERSION)
 
-# In-memory store for cleaning metadata keyed by job ID.
 CLEANING_JOBS: Dict[str, Dict[str, Any]] = {}
+MODEL_REGISTRY = ModelRegistry(
+    {
+        "scenario": SCENARIO_MODEL_ACTIVE_PATH,
+        "forecast": FORECAST_MODEL_PATH,
+    }
+)
+MODEL_REGISTRY.load_all()
 
 
 @app.get("/health")
-def health() -> Dict[str, str]:
-    return {"status": "ok"}
+def health() -> Dict[str, Any]:
+    return {"status": "ok", "models_loaded": MODEL_REGISTRY.models_loaded()}
+
+
+@app.get("/meta")
+def meta() -> Dict[str, Any]:
+    return {
+        "service": SERVICE_NAME,
+        "version": SERVICE_VERSION,
+        "loaded_models": MODEL_REGISTRY.loaded_models(),
+        "model_errors": MODEL_REGISTRY.missing_or_failed_models(),
+    }
+
+
+@app.post("/predict/scenario")
+def predict_scenario_endpoint(payload: ScenarioFeaturesPayload) -> Dict[str, Any]:
+    try:
+        predictions = predict_scenario(payload.features, MODEL_REGISTRY)
+    except PredictionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logging.exception("Unexpected scenario prediction error")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {exc}") from exc
+
+    return {"status": "success", "predictions": predictions}
+
+
+@app.post("/predict/forecast")
+def predict_forecast_endpoint(payload: FeaturesPayload) -> Dict[str, Any]:
+    try:
+        prediction = predict_forecast(payload.features, MODEL_REGISTRY)
+    except PredictionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logging.exception("Unexpected forecast prediction error")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {exc}") from exc
+
+    return {"status": "success", "prediction": prediction}
 
 
 @app.post("/clean/upload")
