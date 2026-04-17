@@ -20,8 +20,8 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@prisma/adapter-pg": "^7.7.0",
-    "@prisma/client": "^7.7.0",
+    "@prisma/adapter-pg": "^6.2.1",
+    "@prisma/client": "^6.2.1",
     "@supabase/supabase-js": "^2.103.3",
     "axios": "^1.15.0",
     "cors": "^2.8.6",
@@ -33,7 +33,7 @@
   "devDependencies": {
     "dotenv": "^17.4.2",
     "nodemon": "^3.1.14",
-    "prisma": "^7.7.0"
+    "prisma": "^6.2.1"
   },
   "overrides": {
     "@hono/node-server": "^1.19.13"
