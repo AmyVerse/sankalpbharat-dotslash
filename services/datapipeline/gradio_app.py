@@ -14,14 +14,12 @@ API_BASE_URL = "http://127.0.0.1:8000"
 SCENARIO_DEFAULT = {
     "baseline_emissions_kg": 1250,
     "baseline_cost_usd": 82000,
-    "action_type": "swap",
+    "action_type": "SUPPLIER_SWAP",
     "swap_tier_level": 2,
-    "supplier_cost_delta": -1200,
-    "supplier_emission_idx_delta": -0.08,
-    "regional_tax_penalty": 450,
+    "supplier_cost_delta_pct": -0.06,
+    "supplier_emission_delta_pct": -0.04,
+    "regional_tax_penalty_pct": 0.02,
     "affected_region_code": 3,
-    "predicted_cost_change": 0,
-    "predicted_emission_change": 0,
 }
 FORECAST_DEFAULT = {
     "lag_1_emission": 43,

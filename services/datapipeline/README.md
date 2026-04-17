@@ -1,224 +1,102 @@
-# ESG Data Cleaning + Prediction Service
+# ESG Data Cleaning + Percentage-Based Prediction Service
 
-This repository provides a combined ESG backend with two major capabilities:
+This service combines:
 
-1. Data cleaning for uploaded CSV/XLS/XLSX datasets.
-2. Machine learning inference endpoints for scenario and forecast predictions.
+1. Data cleaning APIs for CSV/XLS/XLSX uploads.
+2. Scenario/forecast ML prediction APIs for a What-If engine.
 
-It includes both:
+The scenario pipeline now supports **percentage-based targets** for better stability and realism, then reconstructs absolute deltas during inference.
 
-- A FastAPI service for production-style API access.
-- A Gradio UI for quick manual testing of cleaning and prediction flows.
+## Why Move to Percentage Targets
 
----
+Absolute-target models can produce unstable magnitudes when baseline values vary widely.
+Training on percentage deltas improves:
 
-## 1. What This Project Contains
+- numerical stability during optimization
+- realism across small and large baseline entities
+- trust and interpretability (relative effects are easier to reason about)
 
-### Core Runtime Components
+At inference time, percentage predictions are converted back into absolute changes using the request baselines.
 
-- `api.py` (root): compatibility entrypoint that exposes the app from `src/api.py`.
-- `src/api.py`: FastAPI app, routing, request handling, and response shaping.
-- `src/model_loader.py`: model registry and model-loading lifecycle.
-- `src/predictor.py`: prediction logic and output normalization.
-- `src/schemas.py`: payload validation for prediction requests.
-- `src/config.py`: path and service constants.
-- `dataclean.py`: data-cleaning logic used by API and Gradio fallback.
-- `gradio_app.py`: test UI for cleaning + prediction requests.
+## Current Architecture
 
-### Artifacts and Outputs
+- [api.py](api.py): compatibility entrypoint exposing FastAPI app from `src/api.py`.
+- [src/api.py](src/api.py): all API routes.
+- [src/model_loader.py](src/model_loader.py): model registry + loading errors.
+- [src/predictor.py](src/predictor.py): scenario/forecast inference logic.
+- [src/schemas.py](src/schemas.py): request validation rules.
+- [src/config.py](src/config.py): paths and service constants.
+- [gradio_app.py](gradio_app.py): test UI for cleaning + prediction.
+- [train_scenario_pct.py](train_scenario_pct.py): percentage-target training script.
 
-- `models/`: expected location of serialized models.
-- `cleaned_outputs/`: cleaned CSV outputs written by API cleaning endpoint.
+## Scenario Dataset Schema (Final)
 
----
-
-## 2. High-Level Architecture
-
-The service starts in `src/api.py`, initializes a `ModelRegistry`, and tries to load all configured models at startup.
-
-Request flow for prediction:
-
-1. Client sends JSON to `/predict/scenario` or `/predict/forecast`.
-2. FastAPI validates request body using `FeaturesPayload` (`src/schemas.py`).
-3. Endpoint calls prediction helper in `src/predictor.py`.
-4. Predictor fetches model instance from `ModelRegistry`.
-5. Input features are converted to a one-row pandas DataFrame.
-6. Model `.predict()` is executed.
-7. Output is converted to JSON-safe values and returned.
-
-Request flow for cleaning:
-
-1. Client uploads file to `/clean/upload`.
-2. API stores upload as a temporary file.
-3. `clean_file(...)` from `dataclean.py` is called.
-4. Cleaned dataframe is saved to `cleaned_outputs/`.
-5. API returns report, preview, and a download URL.
-
----
-
-## 3. Project Structure (Detailed)
-
-```text
-.
-|-- api.py                     # compatibility app import
-|-- gradio_app.py              # manual testing UI
-|-- dataclean.py               # cleaning logic
-|-- requirements.txt
-|-- models/
-|   |-- scenario_model.pkl     # currently used scenario model
-|   |-- forecast_model.pkl     # optional, may be missing
-|-- cleaned_outputs/           # generated cleaned files
-|-- src/
-|   |-- __init__.py
-|   |-- api.py                 # FastAPI endpoints and startup wiring
-|   |-- config.py              # paths and service metadata
-|   |-- model_loader.py        # model registry + compatibility shim
-|   |-- predictor.py           # model inference formatting
-|   |-- schemas.py             # Pydantic request schema
-|   |-- utils.py               # JSON-safe conversion helper
-|-- README.md
-```
-
----
-
-## 4. Configuration and Paths
-
-`src/config.py` defines:
-
-- `SERVICE_NAME`
-- `SERVICE_VERSION`
-- `BASE_DIR`
-- `MODELS_DIR`
-- `SCENARIO_MODEL_PATH`
-- `FORECAST_MODEL_PATH`
-- `OUTPUT_DIR`
-
-Important behavior:
-
-- `OUTPUT_DIR.mkdir(exist_ok=True)` guarantees `cleaned_outputs/` exists at runtime.
-
----
-
-## 5. Model Loading Lifecycle
-
-`src/model_loader.py` contains `ModelRegistry`, which:
-
-- Stores model file paths.
-- Attempts to load all models at startup.
-- Tracks loaded models and per-model errors.
-- Exposes helper methods used by `/health` and `/meta`.
-
-### Compatibility Handling
-
-`_ensure_sklearn_pickle_compatibility()` injects a compatibility alias for `_RemainderColsList` inside `sklearn.compose._column_transformer` when needed.
-
-Why this exists:
-
-- Older pickled sklearn pipelines can reference internal classes that changed across versions.
-- Without this shim, loading can fail before inference starts.
-
----
-
-## 6. Prediction Contracts
-
-### 6.1 Request Schema
-
-`src/schemas.py` currently accepts:
-
-- `features: Dict[str, Any]`
-- Feature values must be scalar (`int`, `float`, `str`, `bool`).
-
-This enables mixed-type inputs (for example categorical string fields like `action_type`).
-
-### 6.2 Scenario Model Input (Current)
-
-The scenario model expects these input feature keys:
+### Inputs
 
 - `baseline_emissions_kg`
 - `baseline_cost_usd`
 - `action_type`
 - `swap_tier_level`
-- `supplier_cost_delta`
-- `supplier_emission_idx_delta`
-- `regional_tax_penalty`
+- `supplier_cost_delta_pct`
+- `supplier_emission_delta_pct`
+- `regional_tax_penalty_pct`
 - `affected_region_code`
+
+### Training Targets
+
+- `predicted_cost_change_pct`
+- `predicted_emission_change_pct`
+
+### Optional Derived Columns (Not Targets)
+
 - `predicted_cost_change`
 - `predicted_emission_change`
 
-### 6.3 Scenario Response
+## Training: Percentage Model
 
-`src/predictor.py` normalizes scenario model outputs and returns:
+Use [train_scenario_pct.py](train_scenario_pct.py).
 
-```json
-{
-  "status": "success",
-  "predictions": {
-    "predicted_cost_change": -70884.91,
-    "predicted_emission_change": 469.05,
-    "predicted_energy_change": 0.0
-  }
-}
+What it does:
+
+- uses the new input schema
+- trains on percentage targets only
+- keeps preprocessor + split + metrics/plots workflow
+- saves model artifact to `models/scenario_model_pct.pkl`
+- writes metrics and evaluation plots to `cleaned_outputs/`
+
+Run example:
+
+```bash
+python train_scenario_pct.py --data path/to/scenario_training.csv
 ```
 
-Notes:
+Output files:
 
-- If model output has 2 values, first two fields are populated and `predicted_energy_change` is set to `0.0`.
-- If output has 3+ values, the first three are used.
+- `models/scenario_model_pct.pkl`
+- `cleaned_outputs/scenario_pct_metrics.json`
+- `cleaned_outputs/scenario_pct_actual_vs_pred.png`
 
-### 6.4 Forecast Response
+## Model Artifact Selection
 
-`/predict/forecast` returns:
+In [src/config.py](src/config.py), the active scenario model path is:
 
-```json
-{
-  "status": "success",
-  "prediction": {
-    "next_emission": 41.7
-  }
-}
-```
+1. `models/scenario_model_pct.pkl` if present
+2. otherwise fallback to `models/scenario_model.pkl`
 
-If forecast model file is missing, endpoint returns a graceful error via `PredictionError`.
+This keeps old deployments functional while enabling the new percentage model.
 
----
+## Inference Behavior
 
-## 7. API Endpoints (Deep Reference)
+Scenario inference in [src/predictor.py](src/predictor.py):
 
-### `GET /health`
+1. Normalize aliases and action enum.
+2. Run model prediction.
+3. If model output looks percentage-based, compute absolute values:
+   - `predicted_cost_change = predicted_cost_change_pct * baseline_cost_usd`
+   - `predicted_emission_change = predicted_emission_change_pct * baseline_emissions_kg`
+4. If model output looks like legacy absolute values, return absolutes and back-compute pct values for compatibility.
 
-Purpose:
-
-- Liveness-style check.
-- Indicates whether at least one model is loaded.
-
-Response shape:
-
-```json
-{
-  "status": "ok",
-  "models_loaded": true
-}
-```
-
-### `GET /meta`
-
-Purpose:
-
-- Runtime introspection.
-- Returns loaded model names and model loading errors.
-
-Response example:
-
-```json
-{
-  "service": "ESG ML Prediction Service",
-  "version": "1.1.0",
-  "loaded_models": ["scenario"],
-  "model_errors": {
-    "forecast": "Model file not found: .../models/forecast_model.pkl"
-  }
-}
-```
+## API Contracts
 
 ### `POST /predict/scenario`
 
@@ -229,179 +107,103 @@ Request body:
   "features": {
     "baseline_emissions_kg": 1250,
     "baseline_cost_usd": 82000,
-    "action_type": "swap",
+    "action_type": "SUPPLIER_SWAP",
     "swap_tier_level": 2,
-    "supplier_cost_delta": -1200,
-    "supplier_emission_idx_delta": -0.08,
-    "regional_tax_penalty": 450,
-    "affected_region_code": 3,
-    "predicted_cost_change": 0,
-    "predicted_emission_change": 0
+    "supplier_cost_delta_pct": -0.06,
+    "supplier_emission_delta_pct": -0.04,
+    "regional_tax_penalty_pct": 0.02,
+    "affected_region_code": 3
+  }
+}
+```
+
+Response body:
+
+```json
+{
+  "status": "success",
+  "predictions": {
+    "predicted_cost_change_pct": -0.06,
+    "predicted_cost_change": -4920,
+    "predicted_emission_change_pct": -0.04,
+    "predicted_emission_change": -50
   }
 }
 ```
 
 ### `POST /predict/forecast`
 
-Request body:
+Remains backward-compatible with the previous generic numeric feature payload and returns `next_emission`.
 
-```json
-{
-  "features": {
-    "lag_1_emission": 43,
-    "lag_2_emission": 45,
-    "lag_3_emission": 44,
-    "production_next": 150,
-    "diesel_next": 30,
-    "month": 7
-  }
-}
-```
+### Health and Metadata
 
-### `POST /clean/upload`
+- `GET /health`: liveness + `models_loaded`.
+- `GET /meta`: loaded models and detailed model load errors.
 
-Form-data fields:
+## Validation Rules (Scenario)
 
-- `file`: CSV/XLS/XLSX upload
-- `dataset_type`: optional string, default `generic`
+Implemented in [src/schemas.py](src/schemas.py):
 
-Returns:
+- required fields must be present
+- `action_type` must be one of:
+  - `SUPPLIER_SWAP`
+  - `POLICY_CHANGE`
+  - `MIXED`
+- percentage fields must be numeric and in sensible range `[-1.0, 1.0]`
+- feature values must be scalar types
 
-- `job_id`
-- `output_name`
-- row/column info
-- preview rows
-- cleaning report
-- `download_url`
+## Backward Compatibility
 
-### `GET /clean/download/{job_id}`
+Scenario alias mapping is supported for old clients:
 
-Downloads the generated cleaned CSV for an existing job.
+- `supplier_cost_delta` -> `supplier_cost_delta_pct`
+- `supplier_emission_idx_delta` -> `supplier_emission_delta_pct`
+- `regional_tax_penalty` -> `regional_tax_penalty_pct`
 
----
+This mapping is supported in validation and inference normalization.
 
-## 8. Gradio Integration
+Legacy model behavior compatibility:
 
-`gradio_app.py` provides 3 tabs:
+- If old `scenario_model.pkl` is active and emits absolute values, API still responds with both pct + absolute outputs.
 
-1. `Data Cleaning`
-2. `Scenario Prediction`
-3. `Forecast Prediction`
+## Gradio Integration
 
-How it works:
+Scenario defaults in [gradio_app.py](gradio_app.py) are updated to percentage-input schema.
 
-- Cleaning tab calls API `/clean/upload` and then `/clean/download/{job_id}`.
-- If API is down during cleaning, it falls back to direct local `clean_file(...)` execution.
-- Prediction tabs post JSON directly to API endpoints.
-
-Current scenario default payload in Gradio is aligned to the active model columns.
-
----
-
-## 9. Installation and Run
-
-### 9.1 Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-If your model artifact includes XGBoost estimators and loading fails with `No module named 'xgboost'`, install:
-
-```bash
-pip install xgboost
-```
-
-### 9.2 Run API
-
-```bash
-uvicorn api:app --host 127.0.0.1 --port 8000 --reload
-```
-
-### 9.3 Run Gradio
+Run:
 
 ```bash
 python gradio_app.py
 ```
 
-Default Gradio URL: `http://127.0.0.1:7860`
+## Setup and Run
 
----
+Install dependencies:
 
-## 10. Integration Behavior and Failure Modes
+```bash
+pip install -r requirements.txt
+```
 
-### Model Missing
+Run API:
 
-- Service still starts.
-- `/health` remains available.
-- `/meta` shows model-specific error.
-- Prediction endpoint for missing model returns handled 400 error.
+```bash
+uvicorn api:app --host 127.0.0.1 --port 8000 --reload
+```
 
-### API Server Not Running
+## Migration Notes
 
-Gradio prediction tabs show:
+1. Train and export new model as `models/scenario_model_pct.pkl`.
+2. Keep old `models/scenario_model.pkl` during transition.
+3. Move clients to new pct input field names.
+4. Keep aliases enabled until all old clients are migrated.
+5. Verify via `/meta` that active scenario model loads correctly.
 
-- `API unavailable: ... Max retries exceeded ...`
-
-Fix:
-
-- Start FastAPI server first.
-
-### Validation Errors (422)
-
-If you see `float_parsing` for `action_type`, it usually means:
-
-- You are hitting an older running server process still using old schema.
-- Restart API after schema changes.
-
-### sklearn Version Warnings
-
-Warnings like `InconsistentVersionWarning` indicate model was trained/pickled under a different sklearn version.
-
-- Inference may still work.
-- Best long-term fix: retrain/re-export model in the target environment version.
-
----
-
-## 11. Example cURL Calls
-
-### Scenario Prediction
+## Quick Verification
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/predict/scenario" \
   -H "Content-Type: application/json" \
-  -d '{"features":{"baseline_emissions_kg":1250,"baseline_cost_usd":82000,"action_type":"swap","swap_tier_level":2,"supplier_cost_delta":-1200,"supplier_emission_idx_delta":-0.08,"regional_tax_penalty":450,"affected_region_code":3,"predicted_cost_change":0,"predicted_emission_change":0}}'
+  -d '{"features":{"baseline_emissions_kg":1250,"baseline_cost_usd":82000,"action_type":"SUPPLIER_SWAP","swap_tier_level":2,"supplier_cost_delta_pct":-0.06,"supplier_emission_delta_pct":-0.04,"regional_tax_penalty_pct":0.02,"affected_region_code":3}}'
 ```
 
-### Health and Metadata
-
-```bash
-curl "http://127.0.0.1:8000/health"
-curl "http://127.0.0.1:8000/meta"
-```
-
----
-
-## 12. Development Notes
-
-- Keep model input contracts in sync across:
-  - model training artifacts
-  - `src/schemas.py`
-  - Gradio defaults in `gradio_app.py`
-  - this README examples
-- Prefer checking `/meta` immediately after startup to verify model state.
-- When changing model outputs, update `predict_scenario(...)` output mapping accordingly.
-
----
-
-## 13. Quick Checklist
-
-Before testing predictions:
-
-1. Confirm API is running on `127.0.0.1:8000`.
-2. Confirm `models/scenario_model.pkl` exists.
-3. Confirm `/meta` shows scenario model in `loaded_models`.
-4. Confirm request contains all required scenario feature keys.
-5. Confirm values are scalar types only.
-
-If all five pass, scenario inference should execute successfully.
+Expected: success response with both percentage and absolute prediction fields.

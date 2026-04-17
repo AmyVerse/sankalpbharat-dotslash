@@ -10,14 +10,14 @@ from fastapi.responses import FileResponse
 from src.config import (
     FORECAST_MODEL_PATH,
     OUTPUT_DIR,
-    SCENARIO_MODEL_PATH,
+    SCENARIO_MODEL_ACTIVE_PATH,
     SERVICE_NAME,
     SERVICE_VERSION,
 )
 from dataclean import clean_file
 from src.model_loader import ModelRegistry
 from src.predictor import PredictionError, predict_forecast, predict_scenario
-from src.schemas import FeaturesPayload
+from src.schemas import FeaturesPayload, ScenarioFeaturesPayload
 
 logging.basicConfig(level=logging.INFO)
 
@@ -26,7 +26,7 @@ app = FastAPI(title=SERVICE_NAME, version=SERVICE_VERSION)
 CLEANING_JOBS: Dict[str, Dict[str, Any]] = {}
 MODEL_REGISTRY = ModelRegistry(
     {
-        "scenario": SCENARIO_MODEL_PATH,
+        "scenario": SCENARIO_MODEL_ACTIVE_PATH,
         "forecast": FORECAST_MODEL_PATH,
     }
 )
@@ -49,7 +49,7 @@ def meta() -> Dict[str, Any]:
 
 
 @app.post("/predict/scenario")
-def predict_scenario_endpoint(payload: FeaturesPayload) -> Dict[str, Any]:
+def predict_scenario_endpoint(payload: ScenarioFeaturesPayload) -> Dict[str, Any]:
     try:
         predictions = predict_scenario(payload.features, MODEL_REGISTRY)
     except PredictionError as exc:
