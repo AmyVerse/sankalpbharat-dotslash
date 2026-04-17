@@ -1,0 +1,272 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// -----------------------------------------
+// 1. App / Workflow Tables
+// -----------------------------------------
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  name          String
+  email         String   @unique
+  password_hash String
+  role          String
+  department    String?
+  created_at    DateTime @default(now())
+
+  // Relations
+  sessions        Session[]
+  actions         Action[]
+  comments        Comment[]
+  approvals       Approval[]
+  notifications   Notification[]
+  auditLogs       AuditLog[]
+  travelRecords   TravelRecord[]
+  scenarioResults ScenarioResult[]
+}
+
+model Session {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  token      String
+  expires_at DateTime
+
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model Action {
+  id                          String    @id @default(uuid()) @db.Uuid
+  title                       String
+  description                 String?
+  type                        String
+  status                      String
+  owner_user_id               String    @db.Uuid
+  priority                    String
+  expected_emission_reduction Decimal?
+  expected_cost_impact        Decimal?
+  due_date                    DateTime? @db.Date
+  created_at                  DateTime  @default(now())
+
+  owner       User       @relation(fields: [owner_user_id], references: [id])
+  comments    Comment[]
+  approvals   Approval[]
+}
+
+model Comment {
+  id         String   @id @default(uuid()) @db.Uuid
+  action_id  String   @db.Uuid
+  user_id    String   @db.Uuid
+  message    String
+  created_at DateTime @default(now())
+
+  action     Action   @relation(fields: [action_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model Approval {
+  id         String   @id @default(uuid()) @db.Uuid
+  action_id  String   @db.Uuid
+  user_id    String   @db.Uuid
+  decision   String
+  note       String?
+  created_at DateTime @default(now())
+
+  action     Action   @relation(fields: [action_id], references: [id])
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model Notification {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  title      String
+  body       String?
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  entity_type String
+  entity_id   String   @db.Uuid
+  action     String
+  metadata   Json?
+  created_at DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+// -----------------------------------------
+// 2. Core Business Data Tables
+// -----------------------------------------
+
+model Plant {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  city         String
+  country      String
+  business_unit String?
+
+  purchases    Purchase[]
+  energyUsages EnergyUsage[]
+  logistics    Logistics[]
+  wasteRecords WasteRecord[]
+}
+
+model Supplier {
+  id               String   @id @default(uuid()) @db.Uuid
+  name             String
+  category         String?
+  country          String?
+  criticality_level String?
+  sole_source      Boolean  @default(false)
+  active           Boolean  @default(true)
+
+  purchases        Purchase[]
+  logistics        Logistics[]
+  supplierScores   SupplierScore[]
+}
+
+model Purchase {
+  id            String   @id @default(uuid()) @db.Uuid
+  supplier_id   String   @db.Uuid
+  plant_id      String   @db.Uuid
+  material_name String
+  quantity      Decimal
+  unit          String
+  amount        Decimal
+  purchase_date DateTime @db.Date
+
+  supplier      Supplier @relation(fields: [supplier_id], references: [id])
+  plant         Plant    @relation(fields: [plant_id], references: [id])
+}
+
+model EnergyUsage {
+  id         String   @id @default(uuid()) @db.Uuid
+  plant_id   String   @db.Uuid
+  source_type String
+  quantity   Decimal
+  unit       String
+  cost       Decimal
+  usage_date DateTime @db.Date
+
+  plant      Plant    @relation(fields: [plant_id], references: [id])
+}
+
+model Logistics {
+  id           String   @id @default(uuid()) @db.Uuid
+  supplier_id  String   @db.Uuid
+  plant_id     String   @db.Uuid
+  mode         String
+  distance_km  Decimal
+  weight_ton   Decimal
+  cost         Decimal
+  shipment_date DateTime @db.Date
+
+  supplier     Supplier @relation(fields: [supplier_id], references: [id])
+  plant        Plant    @relation(fields: [plant_id], references: [id])
+}
+
+model TravelRecord {
+  id          String   @id @default(uuid()) @db.Uuid
+  user_id     String   @db.Uuid
+  mode        String
+  distance_km Decimal
+  class       String?
+  travel_date DateTime @db.Date
+  cost        Decimal?
+
+  user        User     @relation(fields: [user_id], references: [id])
+}
+
+model WasteRecord {
+  id             String   @id @default(uuid()) @db.Uuid
+  plant_id       String   @db.Uuid
+  waste_type     String
+  quantity       Decimal
+  disposal_method String
+  record_date    DateTime @db.Date
+
+  plant          Plant    @relation(fields: [plant_id], references: [id])
+}
+
+model Emission {
+  id              String   @id @default(uuid()) @db.Uuid
+  source_type     String   // e.g. energy, supplier, logistics
+  source_id       String   @db.Uuid
+  scope           Int
+  category        String?
+  co2e            Decimal
+  confidence_score Decimal?
+  method          String?
+  record_date     DateTime @db.Date
+}
+
+// -----------------------------------------
+// 3. Analytics / AI Output Tables
+// -----------------------------------------
+
+model SupplierScore {
+  id               String   @id @default(uuid()) @db.Uuid
+  supplier_id      String   @db.Uuid
+  dependency_score Decimal?
+  emission_score   Decimal?
+  cost_score       Decimal?
+  risk_score       Decimal?
+  recommended_action String?
+  updated_at       DateTime @updatedAt
+
+  supplier         Supplier @relation(fields: [supplier_id], references: [id])
+}
+
+model DashboardSummary {
+  id             String   @id @default(uuid()) @db.Uuid
+  period         String
+  total_emissions Decimal
+  scope1         Decimal?
+  scope2         Decimal?
+  scope3         Decimal?
+  total_cost     Decimal
+  target_progress Decimal?
+  updated_at     DateTime @updatedAt
+}
+
+model ForecastResult {
+  id             String   @id @default(uuid()) @db.Uuid
+  metric_name    String
+  period         String
+  predicted_value Decimal
+  confidence     Decimal?
+  created_at     DateTime @default(now())
+}
+
+model ScenarioResult {
+  id             String   @id @default(uuid()) @db.Uuid
+  scenario_name  String
+  input_json     Json
+  emission_change Decimal?
+  cost_change    Decimal?
+  risk_change    Decimal?
+  created_by     String   @db.Uuid
+  created_at     DateTime @default(now())
+
+  user           User     @relation(fields: [created_by], references: [id])
+}
+
+model Recommendation {
+  id                String   @id @default(uuid()) @db.Uuid
+  title             String
+  explanation       String?
+  priority          String?
+  related_entity_type String?
+  related_entity_id String?  @db.Uuid
+  status            String?
+  created_at        DateTime @default(now())
+}
