@@ -13,7 +13,7 @@ import { PolicyManager } from './PolicyManager';
 import { InspectorPanel } from './InspectorPanel';
 import { AICommandBar } from './AICommandBar';
 import type { AICommandResult, AIRecommendation } from './AICommandBar';
-import { TimelineView, type Snapshot } from './TimelineView';
+import { TimelineView, type Snapshot, type Scenario } from './TimelineView';
 import { AIInsightPanel, type ImpactSummary } from './AIInsightPanel';
 import { CircularEconomyPanel, type CircularOpportunity } from './CircularEconomyPanel';
 
@@ -99,8 +99,15 @@ export default function SupplyChainDashboard() {
   const [showAlternatives, setShowAlternatives] = useState(false);
 
   // Timeline States
-  const [timeline, setTimeline] = useState<Snapshot[]>([]);
-  const [currentIndex, setCurrentIndex] = useState(-1);
+  const [scenarios, setScenarios] = useState<Scenario[]>([]);
+  const [activeScenarioId, setActiveScenarioId] = useState<string>('baseline');
+
+  const activeScenario = useMemo(() => {
+    return scenarios.find(s => s.id === activeScenarioId) || scenarios[0];
+  }, [scenarios, activeScenarioId]);
+
+  const timeline = activeScenario?.timeline || [];
+  const currentIndex = activeScenario?.currentIndex ?? -1;
 
   // Circular Economy States
   const [isCircularPanelOpen, setIsCircularPanelOpen] = useState(false);
@@ -188,16 +195,16 @@ export default function SupplyChainDashboard() {
 
         setAiRecommendations(recs);
 
-        setTimeline(prev => {
-          const newTimeline = [...prev];
-          if (newTimeline[currentIndex]) {
-            newTimeline[currentIndex] = {
-              ...newTimeline[currentIndex],
-              aiRecommendations: recs
-            };
+        setScenarios(prev => prev.map(s => {
+          if (s.id === activeScenarioId) {
+             const newTimeline = [...s.timeline];
+             if (newTimeline[s.currentIndex]) {
+               newTimeline[s.currentIndex] = { ...newTimeline[s.currentIndex], aiRecommendations: recs };
+             }
+             return { ...s, timeline: newTimeline };
           }
-          return newTimeline;
-        });
+          return s;
+        }));
       }
     } catch (e) {
       console.error("Auto-suggest error:", e);
@@ -235,16 +242,22 @@ export default function SupplyChainDashboard() {
       ...(extra || {})
     };
 
-    setTimeline(prev => {
-      const activeStack = currentIndex === -1 ? prev : prev.slice(0, currentIndex + 1);
-      const nextStack = [...activeStack, snapshot];
-      setCurrentIndex(nextStack.length - 1);
-      return nextStack;
-    });
+    setScenarios(prev => prev.map(s => {
+      if (s.id === activeScenarioId) {
+        const activeStack = s.currentIndex === -1 ? s.timeline : s.timeline.slice(0, s.currentIndex + 1);
+        const nextStack = [...activeStack, snapshot];
+        return { ...s, timeline: nextStack, currentIndex: nextStack.length - 1 };
+      }
+      return s;
+    }));
   };
 
-  const restoreSnapshot = (idx: number) => {
-    const snap = timeline[idx];
+  const restoreSnapshot = (idx: number, optScenarioId?: string) => {
+    const targetScenarioId = optScenarioId || activeScenarioId;
+    const targetScenario = scenarios.find(s => s.id === targetScenarioId);
+    if (!targetScenario) return;
+
+    const snap = targetScenario.timeline[idx];
     if (snap) {
       setNodes(JSON.parse(JSON.stringify(snap.nodes)));
       setEdges(JSON.parse(JSON.stringify(snap.edges)));
@@ -253,8 +266,40 @@ export default function SupplyChainDashboard() {
       setAiRecommendations(snap.aiRecommendations || []);
       setImpactSummary(snap.impactSummary || null);
       setChangeSummary(snap.changeSummary || null);
-      setCurrentIndex(idx);
+      
+      setScenarios(prev => prev.map(s => {
+        if (s.id === targetScenarioId) {
+          return { ...s, currentIndex: idx };
+        }
+        return s;
+      }));
     }
+  };
+
+  const handleBranchScenario = (name: string) => {
+     if (!activeScenario) return;
+     const newId = `scenario-${Date.now()}`;
+     const clonedTimeline = activeScenario.timeline.slice(0, activeScenario.currentIndex + 1);
+     const timelineCopy = JSON.parse(JSON.stringify(clonedTimeline));
+     
+     setScenarios(prev => [
+       ...prev,
+       {
+         id: newId,
+         name,
+         timeline: timelineCopy,
+         currentIndex: timelineCopy.length - 1
+       }
+     ]);
+     setActiveScenarioId(newId);
+  };
+
+  const handleSwitchScenario = (id: string) => {
+     setActiveScenarioId(id);
+     const targetScenario = scenarios.find(s => s.id === id);
+     if (targetScenario) {
+       restoreSnapshot(targetScenario.currentIndex, id);
+     }
   };
 
   const handleAICommand = (result: AICommandResult) => {
@@ -330,9 +375,8 @@ export default function SupplyChainDashboard() {
     setNodes(layoutedNodes);
     setEdges(layoutedEdges);
 
-    if (timeline.length === 0) {
-      setCurrentIndex(0);
-      setTimeline([{
+    if (scenarios.length === 0) {
+      const baselineSnap: Snapshot = {
         timestamp: new Date().toLocaleTimeString(),
         description: "Initial Baseline State",
         nodes: JSON.parse(JSON.stringify(layoutedNodes)),
@@ -347,7 +391,15 @@ export default function SupplyChainDashboard() {
         aiRecommendations: [],
         impactSummary: null,
         changeSummary: null
+      };
+
+      setScenarios([{
+        id: 'baseline',
+        name: 'Baseline Scenario',
+        timeline: [baselineSnap],
+        currentIndex: 0
       }]);
+      setActiveScenarioId('baseline');
     }
   }, []);
 
@@ -641,7 +693,7 @@ export default function SupplyChainDashboard() {
     
     doc.setFontSize(10);
     doc.setTextColor(135, 115, 105);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, 20, 40);
+    doc.text(`Scenario Context: ${activeScenario?.name || 'Baseline'} | Generated: ${new Date().toLocaleString()}`, 20, 40);
     
     doc.setDrawColor(218, 194, 182);
     doc.line(20, 45, 190, 45);
@@ -765,9 +817,11 @@ export default function SupplyChainDashboard() {
 
       <div className="flex-grow relative">
         <TimelineView
-          timeline={timeline}
-          currentIndex={currentIndex}
+          scenarios={scenarios}
+          activeScenarioId={activeScenarioId}
           onRestore={restoreSnapshot}
+          onBranch={handleBranchScenario}
+          onSwitchScenario={handleSwitchScenario}
         />
         <AIInsightPanel
           aiResponse={aiResponse}
