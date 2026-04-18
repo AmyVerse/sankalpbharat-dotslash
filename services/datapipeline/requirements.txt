@@ -10,3 +10,6 @@ python-multipart==0.0.20
 gradio==4.44.0
 requests==2.32.3
 joblib==1.5.2
+catboost==1.2.5
+lightgbm==4.3.0
+python-dotenv==1.0.1

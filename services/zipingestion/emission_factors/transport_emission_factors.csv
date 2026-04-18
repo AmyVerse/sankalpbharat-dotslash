@@ -1,0 +1,8 @@
+vehicle_type,co2_kg_per_unit,ch4_g_per_unit,n2o_g_per_unit,co2e_kg_per_unit,unit
+Medium- and Heavy-Duty Truck,1.298,0.0115,0.0376,1.308286,vehicle-mile
+Passenger Car A,0.297,0.0059,0.0053,0.29857,vehicle-mile
+Light-Duty Truck B,0.394,0.0109,0.0088,0.396637,vehicle-mile
+Medium- and Heavy-Duty TruckC,0.186,0.0016,0.0054,0.187476,short ton-mile
+Rail,0.021,0.0016,0.0005,0.021177,short ton-mile
+Waterborne Craft,0.077,0.031,0.002,0.078398,short ton-mile
+Aircraft,1.086,0.0,0.0334,1.094851,short ton-mile
