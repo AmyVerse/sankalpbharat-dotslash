@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import ReactFlow, { Background, Controls, useNodesState, useEdgesState } from 'reactflow';
+import ReactFlow, { Background, Controls, MiniMap, useNodesState, useEdgesState } from 'reactflow';
 import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
 import dagre from 'dagre';
@@ -25,8 +25,14 @@ const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
 // Helper to auto-layout the graph
-const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => {
-  dagreGraph.setGraph({ rankdir: direction });
+const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'TB') => {
+  dagreGraph.setGraph({ 
+    rankdir: direction,
+    ranksep: 100,
+    nodesep: 60,
+    marginx: 30,
+    marginy: 30,
+  });
 
   nodes.forEach((node) => {
     // Estimating node dimensions based on our custom node UI width
@@ -46,6 +52,17 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[], direction = 'LR') => 
       y: nodeWithPosition.y - 60,
     };
     return node;
+  });
+
+  // Add curved edges with smoothstep
+  edges.forEach((edge) => {
+    edge.type = 'smoothstep';
+    edge.style = { 
+      stroke: '#64748b', 
+      strokeWidth: 2,
+      opacity: 0.7,
+    };
+    edge.animated = false;
   });
 
   return { nodes, edges };
@@ -131,7 +148,7 @@ export default function SupplyChainDashboard() {
 
       const ai = new GoogleGenAI({ apiKey });
 
-      const condensedAlts = Object.entries(alternativesData).map(([target, alts]: any) =>
+      const condensedAlts = Object.entries(liveAlternatives).map(([target, alts]: any) =>
         `Alternatives for ${target} -> [${alts.map((a: any) => `{id: "${a.id}", label: "${a.data.label}", emis: ${a.data.materialIndex}, dist_km: ${a.edgeData?.logistics?.distance_km}, cost: ${a.data.base_cost}}`).join(', ')}]`
       ).join('; ');
 
@@ -313,7 +330,7 @@ export default function SupplyChainDashboard() {
     if (result.node_swap && result.node_swap.target_node_id && result.node_swap.alternative_node_id) {
       const targetId = result.node_swap.target_node_id;
       const altId = result.node_swap.alternative_node_id;
-      const alternativeList = (alternativesData as any)[targetId] || [];
+      const alternativeList = (liveAlternatives as any)[targetId] || [];
       const alternative = alternativeList.find((a: any) => a.id === altId);
 
       if (alternative) {
@@ -366,137 +383,11 @@ export default function SupplyChainDashboard() {
     });
   };
 
-  // Initialize Layout
+  // Dynamically-extended alternatives (mock or backend-generated)
+  const [liveAlternatives, setLiveAlternatives] = useState<Record<string, any[]>>(alternativesData as any);
+
+  // Initialize Layout — DB data when available, mock data as fallback
   useEffect(() => {
-    const fetchNetwork = async () => {
-      try {
-        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
-        
-        // Try to fetch from database first
-        const [plantsRes, suppliersRes, materialsRes, linksRes] = await Promise.all([
-          fetch(`${baseUrl}/plant`),
-          fetch(`${baseUrl}/supplier`),
-          fetch(`${baseUrl}/material`),
-          fetch(`${baseUrl}/supplyLink`)
-        ]);
-        
-        let plantsDb = await plantsRes.json();
-        let suppliersDb = await suppliersRes.json();
-        let materialsDb = await materialsRes.json();
-        let supplyLinksDb = await linksRes.json();
-
-        // Check if we have real data in DB
-        const hasRealData = Array.isArray(suppliersDb) && suppliersDb.length > 0;
-
-        if (hasRealData) {
-          // Use real data from database
-          console.log('[SupplyChain] Using real data from database:', suppliersDb.length, 'suppliers');
-          
-          if (!Array.isArray(plantsDb)) plantsDb = [];
-          if (!Array.isArray(suppliersDb)) suppliersDb = [];
-          if (!Array.isArray(materialsDb)) materialsDb = [];
-          if (!Array.isArray(supplyLinksDb)) supplyLinksDb = [];
-
-          // Show up to 50 nodes for a rich supply chain look
-          const MAX_NODES = 50;
-          const sortedSuppliers = [...suppliersDb].sort((a, b) => (a.tier_level || 1) - (b.tier_level || 1));
-          const plantsToInclude = Math.min(plantsDb.length, 3);
-          const remainingSlots = MAX_NODES - plantsToInclude;
-          const suppliersToInclude = sortedSuppliers.slice(0, remainingSlots);
-
-          const plantIds = new Set(plantsDb.slice(0, plantsToInclude).map((p: any) => p.id));
-          const supplierIds = new Set(suppliersToInclude.map((s: any) => s.id));
-
-          const fetchedNodes: Node[] = [];
-          const fetchedEdges: Edge[] = [];
-
-          const materialMap = new Map(materialsDb.map((m: any) => [m.id, m.base_carbon_index]));
-
-          plantsDb.slice(0, plantsToInclude).forEach((p: any) => {
-            fetchedNodes.push({
-              id: p.id,
-              type: 'plant',
-              data: { label: p.name, location: `${p.city || 'Unknown'}, ${p.country || 'IN'}`, country_code: 'IN-MH', tier_level: 0, criticality_level: 'critical', materialIndex: 1.0 }
-            });
-          });
-
-          suppliersToInclude.forEach((s: any) => {
-            const tier = s.tier_level || 1;
-            const materialIndex = materialMap.size > 0 ? (Array.from(materialMap.values())[0] || (tier * 1.5)) : (tier * 1.5);
-            
-            let countryCode = 'EU';
-            if (s.country === 'India') countryCode = 'IN-MH';
-            else if (s.country === 'China') countryCode = 'CN';
-            else if (s.country === 'USA' || s.country === 'United States') countryCode = 'US';
-            else if (s.country === 'Vietnam') countryCode = 'VN';
-            else if (s.country === 'Taiwan') countryCode = 'TW';
-            else if (s.country === 'Thailand') countryCode = 'TH';
-            else if (s.country === 'South Korea') countryCode = 'KR';
-            
-            fetchedNodes.push({
-              id: s.id,
-              type: 'supplier',
-              data: { 
-                label: s.name, 
-                location: s.country || 'Unknown', 
-                country_code: countryCode, 
-                tier_level: tier, 
-                criticality_level: s.criticality_level || 'medium', 
-                materialIndex: Number(materialIndex).toFixed(1), 
-                base_cost: Math.floor(Math.random() * 5000 + 1000), 
-                score: Math.floor(Math.random() * 50 + 50), 
-                recycled: false 
-              }
-            });
-          });
-
-          supplyLinksDb.forEach((link: any) => {
-            const fromId = link.from_supplier_id || link.from_plant_id;
-            const toId = link.to_supplier_id || link.to_plant_id;
-            if (fromId && toId && (supplierIds.has(fromId) || plantIds.has(fromId)) && (supplierIds.has(toId) || plantIds.has(toId))) {
-              fetchedEdges.push({
-                id: link.id,
-                source: fromId,
-                target: toId,
-                data: { 
-                  logistics: { 
-                    mode: 'Truck', 
-                    distance_km: link.lead_time_days * 20 || 500, 
-                    weight_ton: Number(link.quantity) / 100 || 50, 
-                    emission_factor: 0.00012, 
-                    cost: Number(link.quantity) * 0.5 || 25000 
-                  } 
-                }
-              });
-            }
-          });
-
-          const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(fetchedNodes, fetchedEdges);
-          setNodes(layoutedNodes);
-          setEdges(layoutedEdges);
-          initScenario(layoutedNodes, layoutedEdges);
-        } else {
-          // No data in DB - use mock data fallback
-          console.log('[SupplyChain] No data in DB, using mock data fallback');
-          useMockData();
-        }
-
-      } catch (err) {
-        console.error('[SupplyChain] Error fetching data, using mock fallback:', err);
-        useMockData();
-      }
-    };
-
-    const useMockData = () => {
-      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-        supplyData.nodes as Node[],
-        supplyData.edges as Edge[]
-      );
-      setNodes(layoutedNodes);
-      setEdges(layoutedEdges);
-      initScenario(layoutedNodes, layoutedEdges);
-    };
-
     const initScenario = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
       if (scenarios.length === 0) {
         const baselineSnap: Snapshot = {
@@ -522,6 +413,232 @@ export default function SupplyChainDashboard() {
           timeline: [baselineSnap],
           currentIndex: 0
         }]);
+      }
+    };
+
+    const useMockData = () => {
+      console.log('[SupplyChain] Using mock data.');
+      const mockNodes = JSON.parse(JSON.stringify(supplyData.nodes)) as Node[];
+      const mockEdges = JSON.parse(JSON.stringify(supplyData.edges)) as Edge[];
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(mockNodes, mockEdges);
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+      setLiveAlternatives(alternativesData as any);
+      initScenario(layoutedNodes, layoutedEdges);
+    };
+
+    const resolveCC = (country: string) => {
+      const c = (country || '').toLowerCase();
+      if (c.includes('india')) return 'IN-MH';
+      if (c.includes('china')) return 'CN';
+      if (c.includes('korea')) return 'KR';
+      if (c.includes('usa') || c.includes('united states')) return 'US';
+      if (c.includes('germany')) return 'EU';
+      if (c.includes('australia')) return 'AU';
+      if (c.includes('uae')) return 'AE';
+      return 'EU';
+    };
+
+    const buildFromDatabase = (suppliersDb: any[], plantsDb: any[]) => {
+      console.log(`[SupplyChain] Building graph from DB: ${suppliersDb.length} suppliers, ${plantsDb.length} plants.`);
+
+      const allNodes: Node[] = [];
+      const allEdges: Edge[] = [];
+
+      // Cap to keep UI performant
+      const plants = plantsDb.slice(0, 5);
+      const suppliers = suppliersDb.slice(0, 30);
+
+      const plantIds: string[] = [];
+      const tier1Ids: string[] = [];
+      const tier2Ids: string[] = [];
+      const tier3Ids: string[] = [];
+
+      // --- Create Plant nodes ---
+      plants.forEach((p: any) => {
+        const nid = `P-${p.id.substring(0, 8)}`;
+        allNodes.push({
+          id: nid,
+          type: 'plant',
+          data: {
+            label: p.name,
+            location: `${p.city || ''}, ${p.country || 'India'}`,
+            country_code: resolveCC(p.country || 'India'),
+            tier_level: 0,
+            criticality_level: 'critical',
+            materialIndex: 1.0,
+            fromDatabase: true,
+          }
+        });
+        plantIds.push(nid);
+      });
+
+      // If DB has no plants, create a synthetic assembly plant
+      if (plantIds.length === 0) {
+        allNodes.push({
+          id: 'P-SYNTH',
+          type: 'plant',
+          data: {
+            label: 'Assembly Hub',
+            location: 'India',
+            country_code: 'IN-MH',
+            tier_level: 0,
+            criticality_level: 'critical',
+            materialIndex: 1.0,
+            fromDatabase: true,
+          }
+        });
+        plantIds.push('P-SYNTH');
+      }
+
+      // --- Create Supplier nodes, distribute across tiers for branching ---
+      // Strategy: ~40% T1, ~35% T2, ~25% T3
+      suppliers.forEach((s: any, idx: number) => {
+        const nid = `S-${s.id.substring(0, 8)}`;
+        let tier: number;
+        const pct = idx / suppliers.length;
+        if (pct < 0.40) tier = 1;
+        else if (pct < 0.75) tier = 2;
+        else tier = 3;
+
+        const cc = resolveCC(s.country || '');
+        const matIdx = +(1.0 + (tier * 0.8) + Math.random() * 2.0).toFixed(1);
+        const baseCost = Math.floor(1000 + Math.random() * 6000);
+        const score = Math.floor(35 + Math.random() * 60);
+
+        allNodes.push({
+          id: nid,
+          type: 'supplier',
+          data: {
+            label: s.name,
+            location: s.country || 'Unknown',
+            country_code: cc,
+            tier_level: tier,
+            criticality_level: s.criticality_level || (['low', 'medium', 'high'][idx % 3]),
+            materialIndex: matIdx,
+            base_cost: baseCost,
+            score: score,
+            recycled: Math.random() > 0.8,
+            fromDatabase: true,
+          }
+        });
+
+        if (tier === 1) tier1Ids.push(nid);
+        else if (tier === 2) tier2Ids.push(nid);
+        else tier3Ids.push(nid);
+      });
+
+      // --- Create edges to form a branching tree ---
+      const pickRandom = (arr: string[]) => arr[Math.floor(Math.random() * arr.length)];
+      const modes = ['Truck', 'Rail', 'Ship'];
+      const makeEdge = (source: string, target: string) => ({
+        id: `e-${source}-${target}`,
+        source,
+        target,
+        data: {
+          logistics: {
+            mode: modes[Math.floor(Math.random() * modes.length)],
+            distance_km: Math.floor(100 + Math.random() * 3000),
+            weight_ton: Math.floor(20 + Math.random() * 200),
+            emission_factor: 0.00012,
+            cost: Math.floor(5000 + Math.random() * 120000)
+          }
+        }
+      });
+
+      // T1 → Plants (each T1 connects to 1-2 plants for branching)
+      tier1Ids.forEach(t1 => {
+        allEdges.push(makeEdge(t1, pickRandom(plantIds)));
+        // 30% chance of dual-sourcing to a second plant
+        if (plantIds.length > 1 && Math.random() > 0.7) {
+          const second = plantIds.filter(p => p !== allEdges[allEdges.length - 1].target);
+          if (second.length > 0) allEdges.push(makeEdge(t1, pickRandom(second)));
+        }
+      });
+
+      // T2 → T1 (each T2 feeds into 1-2 T1 suppliers)
+      if (tier1Ids.length > 0) {
+        tier2Ids.forEach(t2 => {
+          allEdges.push(makeEdge(t2, pickRandom(tier1Ids)));
+          if (tier1Ids.length > 1 && Math.random() > 0.6) {
+            const second = tier1Ids.filter(t => t !== allEdges[allEdges.length - 1].target);
+            if (second.length > 0) allEdges.push(makeEdge(t2, pickRandom(second)));
+          }
+        });
+      } else {
+        // No T1, wire T2 directly to plants
+        tier2Ids.forEach(t2 => allEdges.push(makeEdge(t2, pickRandom(plantIds))));
+      }
+
+      // T3 → T2 (each T3 feeds into a T2)
+      if (tier2Ids.length > 0) {
+        tier3Ids.forEach(t3 => allEdges.push(makeEdge(t3, pickRandom(tier2Ids))));
+      } else if (tier1Ids.length > 0) {
+        tier3Ids.forEach(t3 => allEdges.push(makeEdge(t3, pickRandom(tier1Ids))));
+      }
+
+      // --- Generate alternatives from DB suppliers ---
+      // For each T1/T2 supplier, pick other same-tier suppliers as potential swaps
+      const newAlts: Record<string, any[]> = {};
+      const allSupplierNodes = allNodes.filter(n => n.type === 'supplier');
+
+      allSupplierNodes.forEach(node => {
+        const sameTier = allSupplierNodes.filter(n => n.id !== node.id && n.data.tier_level === node.data.tier_level);
+        if (sameTier.length > 0) {
+          // pick up to 2 alternatives
+          const shuffled = sameTier.sort(() => Math.random() - 0.5).slice(0, 2);
+          newAlts[node.id] = shuffled.map(alt => ({
+            id: `alt-${alt.id}`,
+            data: {
+              ...alt.data,
+              label: `${alt.data.label} (Alt)`,
+              materialIndex: Math.max(0.8, alt.data.materialIndex - 0.3),
+              base_cost: Math.floor(alt.data.base_cost * 0.92),
+              score: Math.min(95, alt.data.score + 8),
+            },
+            edgeData: {
+              logistics: {
+                mode: 'Rail',
+                distance_km: Math.floor(200 + Math.random() * 1500),
+                weight_ton: Math.floor(30 + Math.random() * 150),
+                emission_factor: 0.00008,
+                cost: Math.floor(10000 + Math.random() * 60000)
+              }
+            }
+          }));
+        }
+      });
+
+      setLiveAlternatives(newAlts);
+
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(allNodes, allEdges);
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+      initScenario(layoutedNodes, layoutedEdges);
+    };
+
+    // --- Main fetch logic ---
+    const fetchNetwork = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+        const [suppliersRes, plantsRes] = await Promise.all([
+          fetch(`${baseUrl}/supplier`),
+          fetch(`${baseUrl}/plant`)
+        ]);
+
+        let suppliersDb = await suppliersRes.json();
+        let plantsDb = await plantsRes.json();
+        if (!Array.isArray(suppliersDb)) suppliersDb = [];
+        if (!Array.isArray(plantsDb)) plantsDb = [];
+
+        if (suppliersDb.length > 0) {
+          buildFromDatabase(suppliersDb, plantsDb);
+        } else {
+          useMockData();
+        }
+      } catch (err) {
+        console.warn('[SupplyChain] Backend unreachable, using mock data:', (err as Error).message);
+        useMockData();
       }
     };
 
@@ -643,7 +760,7 @@ export default function SupplyChainDashboard() {
 
     if (showAlternatives) {
       nodes.forEach(n => {
-        const alts = (alternativesData as any)[n.id];
+        const alts = (liveAlternatives as any)[n.id];
         if (alts && alts.length > 0) {
           alts.forEach((alt: any, i: number) => {
             outNodes.push({
@@ -967,7 +1084,7 @@ export default function SupplyChainDashboard() {
         <InspectorPanel
           selectedNode={selectedNode}
           currentEdge={currentEdge}
-          alternatives={selectedNode ? (alternativesData as any)[selectedNode.id] : []}
+          alternatives={selectedNode ? (liveAlternatives as any)[selectedNode.id] : []}
           onClose={() => setSelectedNode(null)}
           onSwap={handleSwap}
         />
@@ -983,16 +1100,36 @@ export default function SupplyChainDashboard() {
           minZoom={0.2}
           maxZoom={1.5}
           className="react-flow-container"
+          defaultEdgeOptions={{
+            type: 'smoothstep',
+            style: { 
+              stroke: '#64748b', 
+              strokeWidth: 2,
+              opacity: 0.7,
+            },
+          }}
         >
-          <Background color="#dac2b6" gap={30} size={1} />
+          <Background color="#e8e0d8" gap={25} size={1} />
           <Controls className="react-flow-controls-editorial !bg-white !border-[#dac2b6] !border-opacity-40 !shadow-md !fill-[#553a34]" />
+          <MiniMap 
+            nodeColor={(node) => {
+              if (node.type === 'plant') return '#8b5cf6';
+              if (node.type === 'supplier') {
+                const tier = node.data?.tier_level || 1;
+                return tier === 1 ? '#10b981' : tier === 2 ? '#f59e0b' : '#ef4444';
+              }
+              return '#64748b';
+            }}
+            maskColor="rgba(232, 224, 216, 0.6)"
+            className="!bg-white !border !border-[#dac2b6]"
+          />
         </ReactFlow>
 
         {/* The NLP AI Co-Pilot Input */}
         <AICommandBar
           onCommand={handleAICommand}
           contextNodes={nodes}
-          contextAlternatives={alternativesData}
+          contextAlternatives={liveAlternatives}
           autoRunPrompt={autoRunCommand}
           onAutoRunClear={() => setAutoRunCommand("")}
         />

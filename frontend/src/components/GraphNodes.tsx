@@ -1,4 +1,4 @@
-import { Factory, Warehouse, AlertTriangle, Leaf } from 'lucide-react';
+import { Factory, Warehouse, AlertTriangle, Leaf, Database } from 'lucide-react';
 import { Handle, Position } from 'reactflow';
 
 export const PlantNode = ({ data, selected }: any) => {
@@ -30,23 +30,27 @@ export const SupplierNode = ({ data, selected }: any) => {
   const isTaxed = data.isTaxed;
   const isSubsidized = data.isSubsidized;
   const isRecycled = data.recycled;
+  const isFromDB = data.fromDatabase;
 
   let highlightClass = '';
   if (selected) highlightClass = 'ring-2 ring-[#974726]/40 border-[#974726]';
+  else if (isFromDB) highlightClass = 'bg-[#f0f7ff] ring-1 ring-[#3b82f6]/50 border-[#3b82f6]/60 shadow-[0_4px_12px_rgba(59,130,246,0.12)]';
   else if (isHotspot) highlightClass = 'bg-[#fff5f5] ring-2 ring-[#b91c1c] border-[#b91c1c] shadow-[0_8px_16px_rgba(185,28,28,0.25)] scale-105 z-10';
   else if (isWarning) highlightClass = 'bg-[#fffbf0] ring-1 ring-[#f59e0b] border-[#f59e0b] shadow-[0_4px_12px_rgba(245,158,11,0.15)] scale-[1.02] z-10';
   else if (isTaxed) highlightClass = 'border-[#974726]';
   else if (isSubsidized) highlightClass = 'border-[#15803d]';
 
-  const iconColor = isHotspot 
-    ? 'text-[#b91c1c]' 
-    : isWarning
-      ? 'text-[#d97706]'
-      : isTaxed 
-        ? 'text-[#974726]' 
-        : isSubsidized 
-          ? 'text-[#15803d]' 
-          : 'text-[#877369]';
+  const iconColor = isFromDB
+    ? 'text-[#3b82f6]'
+    : isHotspot 
+      ? 'text-[#b91c1c]' 
+      : isWarning
+        ? 'text-[#d97706]'
+        : isTaxed 
+          ? 'text-[#974726]' 
+          : isSubsidized 
+            ? 'text-[#15803d]' 
+            : 'text-[#877369]';
 
   const tierBg = data.tier_level === 1 
     ? 'bg-[#ffdea0] text-[#261900]' 
@@ -58,14 +62,15 @@ export const SupplierNode = ({ data, selected }: any) => {
     <div className={`px-4 py-3 bg-white border border-[#dac2b6] border-opacity-60 shadow-[0_4px_8px_-2px_rgba(85,58,52,0.06)] transition-all duration-300 w-44 cursor-pointer rounded-sm ${highlightClass}
       ${data.isAlternativeNode ? 'border-dashed opacity-70 hover:opacity-100' : ''}`}>
       <div className="flex items-center gap-2 mb-2">
-        <Warehouse size={14} className={`${iconColor} shrink-0`} />
+        {isFromDB ? <Database size={14} className={`${iconColor} shrink-0`} /> : <Warehouse size={14} className={`${iconColor} shrink-0`} />}
         <div className="min-w-0 flex-1">
           <div className="font-bold text-[11px] text-[#553a34] truncate leading-tight">{data.label}</div>
           <div className="text-[9px] text-[#877369] font-medium truncate">{data.location}</div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          {isFromDB && <span className="text-[7px] font-black px-1 py-0.5 rounded bg-[#3b82f6] text-white leading-none">DB</span>}
           {isHotspot && <AlertTriangle size={10} className="text-[#b91c1c] animate-pulse" />}
-          {isWarning && <AlertTriangle size={10} className="text-[#d97706]" />}
+          {isWarning && !isFromDB && <AlertTriangle size={10} className="text-[#d97706]" />}
           {!isHotspot && !isWarning && isRecycled && <Leaf size={10} className="text-[#15803d]" />}
           <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-full ${tierBg}`}>T{data.tier_level}</span>
         </div>
