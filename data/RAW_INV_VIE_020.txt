@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: COSMO-E-MART NON-WOVEN COMPANY LIMITED
+==================================================
+Invoice Ref: T2-RM-020          Date: 21 Mar 2026
+Origin: Duc Hoa District, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Bovine Tanned Leather
+   CLASSIFICATION: High Carbon / Livestock
+   HSN CODE: 4107.11
+   NET WEIGHT: 13,192 KG
+   RATE/KG: $6.8
+--------------------------------------------------
+TOTAL VALUE: $89,705.6
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: COSMOPOLITAN TEXTILE
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

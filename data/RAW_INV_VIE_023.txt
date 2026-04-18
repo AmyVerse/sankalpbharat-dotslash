@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: HUA FENG (VIETNAM)
+==================================================
+Invoice Ref: T2-RM-023          Date: 30 Mar 2026
+Origin: Phuoc An, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Bovine Tanned Leather
+   CLASSIFICATION: High Carbon / Livestock
+   HSN CODE: 4107.11
+   NET WEIGHT: 5,495 KG
+   RATE/KG: $11.34
+--------------------------------------------------
+TOTAL VALUE: $62,313.3
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: HUA FENG TEXTILE
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: FORMOSA TING SHO ENT CO LTD (TAIWAN)
+==================================================
+Invoice Ref: T2-RM-024          Date: 16 Mar 2026
+Origin: Changhua, Taiwan
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: EVA Foam Pellets
+   CLASSIFICATION: Standard Midsole Grade
+   HSN CODE: 3901.30
+   NET WEIGHT: 7,342 KG
+   RATE/KG: $10.24
+--------------------------------------------------
+TOTAL VALUE: $75,182.08
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: FORMOSA TING SHO
+- Grid Source: Taiwan Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

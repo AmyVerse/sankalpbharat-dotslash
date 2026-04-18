@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: RAMATEX TEXTILES INDUSTRIAL SDN BHD
+==================================================
+Invoice Ref: T2-RM-014          Date: 15 Mar 2026
+Origin: Johor, Malaysia
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Metallic Zippers & Fasteners
+   CLASSIFICATION: YKK Specification
+   HSN CODE: 9607.11
+   NET WEIGHT: 4,465 KG
+   RATE/KG: $10.32
+--------------------------------------------------
+TOTAL VALUE: $46,078.8
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: RAMATEX
+- Grid Source: Malaysia Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

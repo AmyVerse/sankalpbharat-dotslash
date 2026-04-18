@@ -1,0 +1,96 @@
+--- EMAIL 1 ---
+Subject: DISPATCH: #FG-9088 | WILL DER
+From: ship@willder.com
+Body:
+Factory: WILL DER
+Product: Apparel
+Origin: Ricardo Rojas, Argentina
+==============================
+
+--- EMAIL 2 ---
+Subject: INVOICE: T2-RM-150 | GOLD LONG JOHN (TR1) (CHINA)
+From: fin@goldlongjohn(tr1)(china).cn
+Body:
+Vendor: GOLD LONG JOHN (TR1) (CHINA)
+Group: GOLD LONG JOHN
+Loc: Zhongshan Guangdong
+Due: $12588
+==============================
+
+--- EMAIL 3 ---
+Subject: AUDIT: VIMAL CLOTHING ENTERPRISE CC COMPLIANCE
+From: verify@audit-global.org
+Body:
+Org: VIMAL CLOTHING ENTERPRISE CC
+Region: South Africa
+Status: PASS
+Workers: 203
+==============================
+
+--- EMAIL 4 ---
+Subject: DISPATCH: #FG-8675 | Hi-Tech Chai1 Co.,Ltd. 
+From: ship@hi-techchai1co.,ltd..com
+Body:
+Factory: Hi-Tech Chai1 Co.,Ltd. 
+Product: Apparel
+Origin: Muang, Thailand
+==============================
+
+--- EMAIL 5 ---
+Subject: INVOICE: T2-RM-436 | PETTENATI CENTRO AMERICA S.A. DE C.V.
+From: fin@pettenaticentroamericas.a.dec.v..cn
+Body:
+Vendor: PETTENATI CENTRO AMERICA S.A. DE C.V.
+Group: PETTENATI
+Loc: Coatepeque
+Due: $9413
+==============================
+
+--- EMAIL 6 ---
+Subject: AUDIT: SIGMA VIETNAM INDUSTRIAL CO.,LTD COMPLIANCE
+From: verify@audit-global.org
+Body:
+Org: SIGMA VIETNAM INDUSTRIAL CO.,LTD
+Region: Vietnam
+Status: PASS
+Workers: 842
+==============================
+
+--- EMAIL 7 ---
+Subject: DISPATCH: #FG-7419 | PT Sport Glove Indonesia 
+From: ship@ptsportgloveindonesia.com
+Body:
+Factory: PT Sport Glove Indonesia 
+Product: Equipment
+Origin: Sleman, Indonesia
+==============================
+
+--- EMAIL 8 ---
+Subject: INVOICE: T2-RM-641 | Ajara Textile Ltd (Rustavi)
+From: fin@ajaratextileltd(rustavi).cn
+Body:
+Vendor: Ajara Textile Ltd (Rustavi)
+Group: MILTEKS
+Loc: Rustavi
+Due: $15828
+==============================
+
+--- EMAIL 9 ---
+Subject: AUDIT: C.C. Creations COMPLIANCE
+From: verify@audit-global.org
+Body:
+Org: C.C. Creations
+Region: USA
+Status: PASS
+Workers: 282
+==============================
+
+--- EMAIL 10 ---
+Subject: DISPATCH: #FG-9554 | Eagle Nice (Yifeng) Garments Co., Ltd
+From: ship@eaglenice(yifeng)garmentsco.,ltd.com
+Body:
+Factory: Eagle Nice (Yifeng) Garments Co., Ltd
+Product: Apparel
+Origin: Yifeng, China
+==============================
+

@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: TRIMCO GROUP (HONG KONG) CO LTD
+==================================================
+Invoice Ref: T2-RM-028          Date: 21 Feb 2026
+Origin: Kwai Chung, China
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Recycled Polyester Yarn (rPET)
+   CLASSIFICATION: Circular / -30% CO2
+   HSN CODE: 5402.33
+   NET WEIGHT: 9,366 KG
+   RATE/KG: $4.01
+--------------------------------------------------
+TOTAL VALUE: $37,557.66
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: TRIMCO GROUP
+- Grid Source: China Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

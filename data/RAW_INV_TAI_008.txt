@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: FAR EASTERN
+==================================================
+Invoice Ref: T2-RM-008          Date: 24 Feb 2026
+Origin: Taoyuan, Taiwan
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Organic Cotton Bales
+   CLASSIFICATION: Better Cotton Initiative
+   HSN CODE: 5201.00
+   NET WEIGHT: 14,426 KG
+   RATE/KG: $6.65
+--------------------------------------------------
+TOTAL VALUE: $95,932.9
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: FAR EASTERN
+- Grid Source: Taiwan Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

@@ -1,0 +1,26 @@
+Shipment_ID,Origin_Factory,Origin_Country,Destination_Factory,Destination_Country,Mode,Distance_KM,Weight_Tons,Cost_USD,Shipment_Date,CO2e_KG,Product_Type
+SHP-001,Chang Shin Vietnam,Vietnam,Nike Vietnam Hub,Vietnam,Truck,65,800,22000,2026-03-15,6240,Footwear
+SHP-002,Annora Vietnam Footwear,Vietnam,Nike Vietnam Hub,Vietnam,Truck,180,650,38000,2026-03-18,14040,Footwear
+SHP-003,PT Nikomas Gemilang,Indonesia,Nike Vietnam Hub,Vietnam,Ship,2400,1200,185000,2026-02-28,316800,Footwear
+SHP-004,Shoetown Footwear China,China,Nike China Hub,China,Rail,1100,900,42000,2026-03-10,59400,Footwear
+SHP-005,Eagle Nice Yifeng Garments,China,Nike China Hub,China,Truck,850,200,28000,2026-03-12,20400,Apparel
+SHP-006,SHAHI Exports India,India,Nike India Hub,India,Rail,380,350,15000,2026-03-20,7980,Apparel
+SHP-007,Brandix India,India,Nike India Hub,India,Truck,650,280,32000,2026-03-22,21840,Apparel
+SHP-008,Jade Textile Cairo,Egypt,Nike China Hub,China,Ship,8500,400,295000,2026-02-15,374000,Apparel
+SHP-009,PAIHO Vietnam,Vietnam,Chang Shin Vietnam,Vietnam,Truck,35,450,8000,2026-03-05,1890,Materials
+SHP-010,Everest Textiles China,China,Eagle Nice Yifeng Garments,China,Rail,680,300,25000,2026-03-08,12240,Materials
+SHP-011,San Fang Vietnam,Vietnam,Chang Shin Vietnam,Vietnam,Truck,120,380,18000,2026-03-01,5472,Materials
+SHP-012,YKK Vietnam,Vietnam,Chang Shin Vietnam,Vietnam,Truck,85,200,12000,2026-03-03,2040,Materials
+SHP-013,Stretchline Zhongshan,China,Shoetown Footwear China,China,Truck,450,150,22000,2026-03-06,8100,Materials
+SHP-014,Prime Asia Vietnam,Vietnam,PT Nikomas Gemilang,Indonesia,Ship,1800,500,95000,2026-02-20,99000,Materials
+SHP-015,Avery Dennison Guangzhou,China,Shoetown Footwear China,China,Truck,280,100,14000,2026-03-09,3360,Materials
+SHP-016,SHAHI Exports Materials,India,SHAHI Exports India,India,Truck,15,250,3000,2026-03-15,450,Materials
+SHP-017,Tong Hong Tannery Vietnam,Vietnam,Annora Vietnam Footwear,Vietnam,Truck,95,350,16000,2026-03-10,3990,Materials
+SHP-018,Formosa Taffeta Vietnam,Vietnam,Chang Shin Vietnam,Vietnam,Truck,140,280,19000,2026-03-02,4704,Materials
+SHP-019,MAS Fabrics Sri Lanka,Sri Lanka,SHAHI Exports Materials,India,Ship,850,180,45000,2026-02-25,16830,Raw Materials
+SHP-020,Kuraray Japan,Japan,San Fang Vietnam,Vietnam,Ship,4200,120,165000,2026-02-10,55440,Raw Materials
+SHP-021,Toray Sakai China,China,Formosa Taffeta Vietnam,Vietnam,Ship,2100,200,78000,2026-02-18,46200,Raw Materials
+SHP-022,Ramatex Malaysia,Malaysia,Everest Textiles China,China,Ship,3600,250,92000,2026-02-12,99000,Raw Materials
+SHP-023,YKK Taiwan,Taiwan,YKK Vietnam,Vietnam,Ship,1600,180,55000,2026-02-22,31680,Raw Materials
+SHP-024,Feng Tay Indonesia,Indonesia,Nike Vietnam Hub,Vietnam,Ship,1900,950,142000,2026-03-25,198550,Footwear
+SHP-025,Hirdaramani Sri Lanka,Sri Lanka,Nike India Hub,India,Ship,650,220,38000,2026-03-28,15730,Apparel

@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: PROMAX TEXTILE (VIETNAM) CO. LTD.  (FTY 2)
+==================================================
+Invoice Ref: T2-RM-026          Date: 08 Mar 2026
+Origin: Nhon Trach district, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Recycled Polyester Yarn (rPET)
+   CLASSIFICATION: Circular / -30% CO2
+   HSN CODE: 5402.33
+   NET WEIGHT: 4,648 KG
+   RATE/KG: $6.05
+--------------------------------------------------
+TOTAL VALUE: $28,120.4
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: PROMAX TEXTILE
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

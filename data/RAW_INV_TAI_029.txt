@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: YKK TAIWAN CHUNG LI 2ND FACTORY
+==================================================
+Invoice Ref: T2-RM-029          Date: 17 Feb 2026
+Origin: Taoyuan, Taiwan
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: EVA Foam Pellets
+   CLASSIFICATION: Standard Midsole Grade
+   HSN CODE: 3901.30
+   NET WEIGHT: 10,707 KG
+   RATE/KG: $4.52
+--------------------------------------------------
+TOTAL VALUE: $48,395.64
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: YKK
+- Grid Source: Taiwan Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

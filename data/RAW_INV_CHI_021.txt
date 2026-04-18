@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: TAYIN R&D CO LTD (CHINA)
+==================================================
+Invoice Ref: T2-RM-021          Date: 19 Feb 2026
+Origin: QINGYUAN, China
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Recycled Rubber Crumbs
+   CLASSIFICATION: Sustainable / Move to Zero
+   HSN CODE: 4003.00
+   NET WEIGHT: 12,366 KG
+   RATE/KG: $4.42
+--------------------------------------------------
+TOTAL VALUE: $54,657.72
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: TAYIN
+- Grid Source: China Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

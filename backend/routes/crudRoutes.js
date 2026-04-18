@@ -51,6 +51,22 @@ router.get('/:model/:id', checkModel, async (req, res) => {
   }
 });
 
+// Batch Create records
+router.post('/batch/:model', checkModel, async (req, res) => {
+  try {
+    if (!Array.isArray(req.body)) {
+      return res.status(400).json({ error: 'Body must be an array of objects' });
+    }
+    // Use an interactive transaction or parallel creation array so IDs are returned.
+    const creates = req.body.map(data => req.prismaModel.create({ data }));
+    const result = await prisma.$transaction(creates);
+    
+    res.status(201).json(result);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // Create a new record
 router.post('/:model', checkModel, async (req, res) => {
   try {

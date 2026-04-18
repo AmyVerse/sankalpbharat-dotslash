@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: SHANGHAI YKK ZIPPER CO LTD (NANHUI)
+==================================================
+Invoice Ref: T2-RM-007          Date: 30 Mar 2026
+Origin: Shanghai, China
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Recycled Polyester Yarn (rPET)
+   CLASSIFICATION: Circular / -30% CO2
+   HSN CODE: 5402.33
+   NET WEIGHT: 13,612 KG
+   RATE/KG: $9.7
+--------------------------------------------------
+TOTAL VALUE: $132,036.4
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: YKK
+- Grid Source: China Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: KUO YUEN (VIETNAM)
+==================================================
+Invoice Ref: T2-RM-011          Date: 22 Feb 2026
+Origin: Dong Nai, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Bovine Tanned Leather
+   CLASSIFICATION: High Carbon / Livestock
+   HSN CODE: 4107.11
+   NET WEIGHT: 13,252 KG
+   RATE/KG: $6.25
+--------------------------------------------------
+TOTAL VALUE: $82,825.0
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: KUO YUEN
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

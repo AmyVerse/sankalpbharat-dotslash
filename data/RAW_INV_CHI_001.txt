@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: EVEREST TEXTILES CHINA
+==================================================
+Invoice Ref: T2-RM-001          Date: 27 Mar 2026
+Origin: Shanghai, China
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Recycled Polyester Yarn (rPET)
+   CLASSIFICATION: Circular / -30% CO2
+   HSN CODE: 5402.33
+   NET WEIGHT: 10,848 KG
+   RATE/KG: $3.86
+--------------------------------------------------
+TOTAL VALUE: $41,873.28
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: EVEREST TEXTILE
+- Grid Source: China Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

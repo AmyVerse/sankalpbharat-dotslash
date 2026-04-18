@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: KURARAY CO LTD (CLARINO) (TR1) (JAPAN)
+==================================================
+Invoice Ref: T2-RM-015          Date: 20 Mar 2026
+Origin: Osaka, Japan
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: EVA Foam Pellets
+   CLASSIFICATION: Standard Midsole Grade
+   HSN CODE: 3901.30
+   NET WEIGHT: 11,794 KG
+   RATE/KG: $5.33
+--------------------------------------------------
+TOTAL VALUE: $62,862.02
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: KURARAY
+- Grid Source: Japan Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

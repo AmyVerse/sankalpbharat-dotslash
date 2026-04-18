@@ -4,6 +4,7 @@ import SupplyChainDashboard from './components/SupplyChainDashboard';
 import DatabaseExplorer from './components/DatabaseExplorer';
 import LoginPage from './pages/LoginPage';
 import Dashboard from './pages/Dashboard';
+import DataIngestionPage from './pages/DataIngestionPage';
 
 function App() {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,6 +14,7 @@ function App() {
       <Routes>
         <Route path="/" element={<LoginPage isLogin={isLogin} setIsLogin={setIsLogin} />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dataingestion" element={<DataIngestionPage />} />
         <Route path="/supplychaindashboard" element={<SupplyChainDashboard />} />
         <Route path="/dev/database" element={<DatabaseExplorer />} />
       </Routes>

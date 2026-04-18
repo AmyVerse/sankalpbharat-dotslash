@@ -368,39 +368,164 @@ export default function SupplyChainDashboard() {
 
   // Initialize Layout
   useEffect(() => {
-    const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
-      supplyData.nodes as Node[],
-      supplyData.edges as Edge[]
-    );
-    setNodes(layoutedNodes);
-    setEdges(layoutedEdges);
+    const fetchNetwork = async () => {
+      try {
+        const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
+        
+        // Try to fetch from database first
+        const [plantsRes, suppliersRes, materialsRes, linksRes] = await Promise.all([
+          fetch(`${baseUrl}/plant`),
+          fetch(`${baseUrl}/supplier`),
+          fetch(`${baseUrl}/material`),
+          fetch(`${baseUrl}/supplyLink`)
+        ]);
+        
+        let plantsDb = await plantsRes.json();
+        let suppliersDb = await suppliersRes.json();
+        let materialsDb = await materialsRes.json();
+        let supplyLinksDb = await linksRes.json();
 
-    if (scenarios.length === 0) {
-      const baselineSnap: Snapshot = {
-        timestamp: new Date().toLocaleTimeString(),
-        description: "Initial Baseline State",
-        nodes: JSON.parse(JSON.stringify(layoutedNodes)),
-        edges: JSON.parse(JSON.stringify(layoutedEdges)),
-        countryMultipliers: {
-          'CN': 1.0, 'KR': 1.0, 'EU': 1.0, 'US': 1.0, 'AU': 1.0,
-          'IN-MH': 1.0, 'IN-UP': 1.0, 'IN-GJ': 1.0, 'IN-MP': 1.0,
-          'IN-TN': 1.0, 'IN-RJ': 1.0, 'IN-KA': 1.0, 'IN-JH': 1.0,
-          'IN-AP': 1.0, 'IN-HR': 1.0,
-        },
-        aiResponse: '',
-        aiRecommendations: [],
-        impactSummary: null,
-        changeSummary: null
-      };
+        // Check if we have real data in DB
+        const hasRealData = Array.isArray(suppliersDb) && suppliersDb.length > 0;
 
-      setScenarios([{
-        id: 'baseline',
-        name: 'Baseline Scenario',
-        timeline: [baselineSnap],
-        currentIndex: 0
-      }]);
-      setActiveScenarioId('baseline');
-    }
+        if (hasRealData) {
+          // Use real data from database
+          console.log('[SupplyChain] Using real data from database:', suppliersDb.length, 'suppliers');
+          
+          if (!Array.isArray(plantsDb)) plantsDb = [];
+          if (!Array.isArray(suppliersDb)) suppliersDb = [];
+          if (!Array.isArray(materialsDb)) materialsDb = [];
+          if (!Array.isArray(supplyLinksDb)) supplyLinksDb = [];
+
+          // Show up to 50 nodes for a rich supply chain look
+          const MAX_NODES = 50;
+          const sortedSuppliers = [...suppliersDb].sort((a, b) => (a.tier_level || 1) - (b.tier_level || 1));
+          const plantsToInclude = Math.min(plantsDb.length, 3);
+          const remainingSlots = MAX_NODES - plantsToInclude;
+          const suppliersToInclude = sortedSuppliers.slice(0, remainingSlots);
+
+          const plantIds = new Set(plantsDb.slice(0, plantsToInclude).map((p: any) => p.id));
+          const supplierIds = new Set(suppliersToInclude.map((s: any) => s.id));
+
+          const fetchedNodes: Node[] = [];
+          const fetchedEdges: Edge[] = [];
+
+          const materialMap = new Map(materialsDb.map((m: any) => [m.id, m.base_carbon_index]));
+
+          plantsDb.slice(0, plantsToInclude).forEach((p: any) => {
+            fetchedNodes.push({
+              id: p.id,
+              type: 'plant',
+              data: { label: p.name, location: `${p.city || 'Unknown'}, ${p.country || 'IN'}`, country_code: 'IN-MH', tier_level: 0, criticality_level: 'critical', materialIndex: 1.0 }
+            });
+          });
+
+          suppliersToInclude.forEach((s: any) => {
+            const tier = s.tier_level || 1;
+            const materialIndex = materialMap.size > 0 ? (Array.from(materialMap.values())[0] || (tier * 1.5)) : (tier * 1.5);
+            
+            let countryCode = 'EU';
+            if (s.country === 'India') countryCode = 'IN-MH';
+            else if (s.country === 'China') countryCode = 'CN';
+            else if (s.country === 'USA' || s.country === 'United States') countryCode = 'US';
+            else if (s.country === 'Vietnam') countryCode = 'VN';
+            else if (s.country === 'Taiwan') countryCode = 'TW';
+            else if (s.country === 'Thailand') countryCode = 'TH';
+            else if (s.country === 'South Korea') countryCode = 'KR';
+            
+            fetchedNodes.push({
+              id: s.id,
+              type: 'supplier',
+              data: { 
+                label: s.name, 
+                location: s.country || 'Unknown', 
+                country_code: countryCode, 
+                tier_level: tier, 
+                criticality_level: s.criticality_level || 'medium', 
+                materialIndex: Number(materialIndex).toFixed(1), 
+                base_cost: Math.floor(Math.random() * 5000 + 1000), 
+                score: Math.floor(Math.random() * 50 + 50), 
+                recycled: false 
+              }
+            });
+          });
+
+          supplyLinksDb.forEach((link: any) => {
+            const fromId = link.from_supplier_id || link.from_plant_id;
+            const toId = link.to_supplier_id || link.to_plant_id;
+            if (fromId && toId && (supplierIds.has(fromId) || plantIds.has(fromId)) && (supplierIds.has(toId) || plantIds.has(toId))) {
+              fetchedEdges.push({
+                id: link.id,
+                source: fromId,
+                target: toId,
+                data: { 
+                  logistics: { 
+                    mode: 'Truck', 
+                    distance_km: link.lead_time_days * 20 || 500, 
+                    weight_ton: Number(link.quantity) / 100 || 50, 
+                    emission_factor: 0.00012, 
+                    cost: Number(link.quantity) * 0.5 || 25000 
+                  } 
+                }
+              });
+            }
+          });
+
+          const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(fetchedNodes, fetchedEdges);
+          setNodes(layoutedNodes);
+          setEdges(layoutedEdges);
+          initScenario(layoutedNodes, layoutedEdges);
+        } else {
+          // No data in DB - use mock data fallback
+          console.log('[SupplyChain] No data in DB, using mock data fallback');
+          useMockData();
+        }
+
+      } catch (err) {
+        console.error('[SupplyChain] Error fetching data, using mock fallback:', err);
+        useMockData();
+      }
+    };
+
+    const useMockData = () => {
+      const { nodes: layoutedNodes, edges: layoutedEdges } = getLayoutedElements(
+        supplyData.nodes as Node[],
+        supplyData.edges as Edge[]
+      );
+      setNodes(layoutedNodes);
+      setEdges(layoutedEdges);
+      initScenario(layoutedNodes, layoutedEdges);
+    };
+
+    const initScenario = (layoutedNodes: Node[], layoutedEdges: Edge[]) => {
+      if (scenarios.length === 0) {
+        const baselineSnap: Snapshot = {
+          timestamp: new Date().toLocaleTimeString(),
+          description: "Initial Baseline State",
+          nodes: JSON.parse(JSON.stringify(layoutedNodes)),
+          edges: JSON.parse(JSON.stringify(layoutedEdges)),
+          countryMultipliers: {
+            'CN': 1.0, 'KR': 1.0, 'EU': 1.0, 'US': 1.0, 'AU': 1.0,
+            'IN-MH': 1.0, 'IN-UP': 1.0, 'IN-GJ': 1.0, 'IN-MP': 1.0,
+            'IN-TN': 1.0, 'IN-RJ': 1.0, 'IN-KA': 1.0, 'IN-JH': 1.0,
+            'IN-AP': 1.0, 'IN-HR': 1.0,
+          },
+          aiResponse: '',
+          aiRecommendations: [],
+          impactSummary: null,
+          changeSummary: null
+        };
+        setActiveScenarioId('baseline');
+        setScenarios([{
+          id: 'baseline',
+          name: 'Baseline Scenario',
+          timeline: [baselineSnap],
+          currentIndex: 0
+        }]);
+      }
+    };
+
+    fetchNetwork();
   }, []);
 
   // Compute accumulated emissions (Schema logic: recursively walk edges to Plants)

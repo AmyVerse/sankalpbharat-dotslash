@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: PT DAEWON ECO INDONESIA
+==================================================
+Invoice Ref: T2-RM-016          Date: 06 Apr 2026
+Origin: Bekasi, Indonesia
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Bovine Tanned Leather
+   CLASSIFICATION: High Carbon / Livestock
+   HSN CODE: 4107.11
+   NET WEIGHT: 5,282 KG
+   RATE/KG: $8.76
+--------------------------------------------------
+TOTAL VALUE: $46,270.32
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: DAEWON
+- Grid Source: Indonesia Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: EVEREST TEXTILE CO LTD
+==================================================
+Invoice Ref: T2-RM-017          Date: 24 Feb 2026
+Origin: Tainan City, Taiwan
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Metallic Zippers & Fasteners
+   CLASSIFICATION: YKK Specification
+   HSN CODE: 9607.11
+   NET WEIGHT: 3,132 KG
+   RATE/KG: $6.53
+--------------------------------------------------
+TOTAL VALUE: $20,451.96
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: EVEREST TEXTILE
+- Grid Source: Taiwan Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

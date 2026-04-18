@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: DONGJIN TEXTILE VINA
+==================================================
+Invoice Ref: T2-RM-013          Date: 17 Feb 2026
+Origin: Dong Nai, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: EVA Foam Pellets
+   CLASSIFICATION: Standard Midsole Grade
+   HSN CODE: 3901.30
+   NET WEIGHT: 8,659 KG
+   RATE/KG: $11.9
+--------------------------------------------------
+TOTAL VALUE: $103,042.1
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: DONGJIN
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

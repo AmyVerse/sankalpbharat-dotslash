@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: FULLTIDE ENTERPRISE CO., LTD.
+==================================================
+Invoice Ref: T2-RM-005          Date: 15 Mar 2026
+Origin: Dayuan Dist, Taiwan
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Organic Cotton Bales
+   CLASSIFICATION: Better Cotton Initiative
+   HSN CODE: 5201.00
+   NET WEIGHT: 4,343 KG
+   RATE/KG: $6.16
+--------------------------------------------------
+TOTAL VALUE: $26,752.88
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: FULL TIDE
+- Grid Source: Taiwan Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

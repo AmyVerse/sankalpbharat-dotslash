@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: TING HENG CO., LTD
+==================================================
+Invoice Ref: T2-RM-003          Date: 07 Apr 2026
+Origin: Duc Hoa, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Bovine Tanned Leather
+   CLASSIFICATION: High Carbon / Livestock
+   HSN CODE: 4107.11
+   NET WEIGHT: 14,764 KG
+   RATE/KG: $8.72
+--------------------------------------------------
+TOTAL VALUE: $128,742.08
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: TING HENG
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

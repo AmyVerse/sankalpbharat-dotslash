@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: MAXIM LABEL AND PACKAGING VIETNAM CO., LTD
+==================================================
+Invoice Ref: T2-RM-002          Date: 04 Apr 2026
+Origin: Thuan An, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Recycled Polyester Yarn (rPET)
+   CLASSIFICATION: Circular / -30% CO2
+   HSN CODE: 5402.33
+   NET WEIGHT: 3,256 KG
+   RATE/KG: $4.78
+--------------------------------------------------
+TOTAL VALUE: $15,563.68
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: MAXIM
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: MILTEKS TEKSTIL SAN VE TIC AS
+==================================================
+Invoice Ref: T2-RM-012          Date: 20 Mar 2026
+Origin: Kahramanmaras, Turkey
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Metallic Zippers & Fasteners
+   CLASSIFICATION: YKK Specification
+   HSN CODE: 9607.11
+   NET WEIGHT: 13,562 KG
+   RATE/KG: $6.13
+--------------------------------------------------
+TOTAL VALUE: $83,135.06
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: MILTEKS
+- Grid Source: Turkey Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

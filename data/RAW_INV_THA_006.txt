@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: SADESA THAILAND SENA
+==================================================
+Invoice Ref: T2-RM-006          Date: 02 Apr 2026
+Origin: Ayutthaya, Thailand
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Synthetic Rubber Slabs
+   CLASSIFICATION: Petroleum-based Virgin
+   HSN CODE: 4002.11
+   NET WEIGHT: 9,647 KG
+   RATE/KG: $10.09
+--------------------------------------------------
+TOTAL VALUE: $97,338.23
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: SADESA
+- Grid Source: Thailand Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

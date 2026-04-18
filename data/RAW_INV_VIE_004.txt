@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: BAIKSAN (VIETNAM)
+==================================================
+Invoice Ref: T2-RM-004          Date: 06 Mar 2026
+Origin: Binh Duong, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Recycled Rubber Crumbs
+   CLASSIFICATION: Sustainable / Move to Zero
+   HSN CODE: 4003.00
+   NET WEIGHT: 5,502 KG
+   RATE/KG: $9.18
+--------------------------------------------------
+TOTAL VALUE: $50,508.36
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: BAIKSAN
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: TKG ECO MATERIAL SYNTHETIC (VIETNAM)
+==================================================
+Invoice Ref: T2-RM-025          Date: 27 Mar 2026
+Origin: Tay Ninh, Vietnam
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Synthetic Rubber Slabs
+   CLASSIFICATION: Petroleum-based Virgin
+   HSN CODE: 4002.11
+   NET WEIGHT: 11,985 KG
+   RATE/KG: $3.99
+--------------------------------------------------
+TOTAL VALUE: $47,820.15
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: TKG ECO MATERIAL
+- Grid Source: Vietnam Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================

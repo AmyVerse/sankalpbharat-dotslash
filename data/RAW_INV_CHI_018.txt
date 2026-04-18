@@ -1,0 +1,23 @@
+==================================================
+        RAW MATERIAL INVOICE: PAIHO (WUXI 1)
+==================================================
+Invoice Ref: T2-RM-018          Date: 08 Mar 2026
+Origin: WUXI CITY, China
+Ship To: NIKE REGIONAL LOGISTICS HUB
+
+Material Details:
+--------------------------------------------------
+1. COMMODITY: Bovine Tanned Leather
+   CLASSIFICATION: High Carbon / Livestock
+   HSN CODE: 4107.11
+   NET WEIGHT: 9,097 KG
+   RATE/KG: $8.3
+--------------------------------------------------
+TOTAL VALUE: $75,505.1
+
+SUPPLY CHAIN AUDIT:
+- Tier Level: Tier 2 (Material Supplier)
+- Parent Group: PAIHO GROUP
+- Grid Source: China Utility Grid
+- Compliance: Nike Restricted Substances List (RSL)
+==================================================
