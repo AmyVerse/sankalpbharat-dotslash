@@ -10,4 +10,3 @@ python-multipart==0.0.20
 gradio==4.44.0
 requests==2.32.3
 joblib==1.5.2
-xgboost==2.0.3

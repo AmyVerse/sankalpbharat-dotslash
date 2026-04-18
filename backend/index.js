@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
 });
 
 app.get("/api", (req, res) => {
-  res.send("Hello from Symbiosis AI API");
+  res.send("Hello from ESGAudit API");
 });
 
 // Setup Swagger Documentation at /api-docs

@@ -15,9 +15,10 @@ from src.config import (
     SERVICE_VERSION,
 )
 from dataclean import clean_file
+from src.forecast_inference import forecast
 from src.model_loader import ModelRegistry
 from src.predictor import PredictionError, predict_forecast, predict_scenario
-from src.schemas import FeaturesPayload, ScenarioFeaturesPayload
+from src.schemas import FeaturesPayload, ForecastPayload, ScenarioFeaturesPayload
 
 logging.basicConfig(level=logging.INFO)
 
@@ -72,6 +73,24 @@ def predict_forecast_endpoint(payload: FeaturesPayload) -> Dict[str, Any]:
         raise HTTPException(status_code=500, detail=f"Prediction failed: {exc}") from exc
 
     return {"status": "success", "prediction": prediction}
+
+
+@app.post("/forecast")
+def forecast_endpoint(payload: ForecastPayload) -> Dict[str, Any]:
+    try:
+        history_rows = [row.model_dump() for row in payload.history]
+        forecasts = forecast(history_rows, payload.forecast_years)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        logging.exception("Unexpected forecast inference error")
+        raise HTTPException(status_code=500, detail=f"Prediction failed: {exc}") from exc
+
+    return {
+        "region": payload.region,
+        "sector": payload.sector,
+        "forecasts": forecasts,
+    }
 
 
 @app.post("/clean/upload")

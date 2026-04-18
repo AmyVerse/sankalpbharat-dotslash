@@ -32,7 +32,7 @@ router.post("/webhook", async (req, res) => {
 
             // 1. Text Interaction
             if (type === "text") {
-                // Log only in dev or if needed, keeping simple for now
+                await sendWhatsAppMessage(from, "Hi, thanks for messaging");
             }
 
             // 2. Location Metadata
@@ -40,7 +40,7 @@ router.post("/webhook", async (req, res) => {
                 const { latitude, longitude } = message.location;
                 await sendWhatsAppMessage(
                     from,
-                    `Symbiosis AI has indexed your location: ${latitude}, ${longitude}.`,
+                    `ESGAudit has indexed your location: ${latitude}, ${longitude}.`,
                 );
             }
 
@@ -116,7 +116,7 @@ async function uploadMediaToCloud(mediaId, from, type, mimeType) {
 
         if (error) throw error;
         await sendWhatsAppMessage(from, `Archive successful.`);
-        
+
     } catch (error) {
         console.error("❌ Media Archival Error:", error.message);
     }

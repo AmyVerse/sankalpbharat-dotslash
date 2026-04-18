@@ -2,10 +2,17 @@ from typing import Any, Dict
 
 import pandas as pd
 
+from src.forecast_inference import ForecastInferenceError, load_model as load_forecast_model, predict_next_step
 from src.model_loader import ModelRegistry
-from src.schemas import ACTION_TYPE_VALUES, SCENARIO_FIELD_ALIASES
 from src.utils import to_json_safe
 
+
+ACTION_TYPE_VALUES = {"SUPPLIER_SWAP", "POLICY_CHANGE", "MIXED"}
+SCENARIO_FIELD_ALIASES = {
+    "supplier_cost_delta": "supplier_cost_delta_pct",
+    "supplier_emission_idx_delta": "supplier_emission_delta_pct",
+    "regional_tax_penalty": "regional_tax_penalty_pct",
+}
 
 SCENARIO_REVERSE_ALIASES = {
     "supplier_cost_delta_pct": "supplier_cost_delta",
@@ -112,16 +119,26 @@ def predict_forecast(features: Dict[str, Any], registry: ModelRegistry) -> Dict[
     if model is None:
         raise PredictionError(registry.get_error("forecast") or "forecast model is not loaded")
 
-    raw = _predict_with_model(model, features)
-    output = to_json_safe(raw)
+    # Legacy support: if the registered forecast artifact is a callable model, use the old path.
+    if hasattr(model, "predict") or callable(model):
+        raw = _predict_with_model(model, features)
+        output = to_json_safe(raw)
+        value: Any = output
+        if isinstance(output, list) and output:
+            first = output[0]
+            if isinstance(first, list) and first:
+                value = first[0]
+            else:
+                value = first
+        return {"next_emission": float(value)}
 
-    # Extract scalar value from nested or flat output.
-    value: Any = output
-    if isinstance(output, list) and output:
-        first = output[0]
-        if isinstance(first, list) and first:
-            value = first[0]
-        else:
-            value = first
+    try:
+        bundle = load_forecast_model()
+        feature_row = pd.DataFrame([features])
+        next_emission = predict_next_step(feature_row, bundle)
+    except ForecastInferenceError as exc:
+        raise PredictionError(str(exc)) from exc
+    except Exception as exc:
+        raise PredictionError(f"forecast prediction failed: {exc}") from exc
 
-    return {"next_emission": float(value)}
+    return {"next_emission": float(next_emission)}
